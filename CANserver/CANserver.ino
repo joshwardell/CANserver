@@ -2,7 +2,7 @@
  *   http://www.jwardell.com/canserver/
  *   To be used with microDisplay
  *   
- *   Jun 1 2020
+ *   Jun 3 2020
  *   
  *   Board: Node32s
  *   (must press IO0 right button to start programming)
@@ -232,7 +232,8 @@ void loop(){
 
   //set up display commands from data, see microDisplay command reference
   disp0mode = 0;
-  disp0str = String(BattPower) + "vWK  Bu" + String(int(0.008 * BattPower)) + "b" + disp0mode + "m" + "3s12345t";
+  /////disp0str = "-901vFDu0m11l"; //for display test
+  disp0str = String(BattPower) + "vWK  Bu" + String(int(0.008 * BattPower)) + "b" + disp0mode + "m" + "3s12345tI1l";
   disp1str = String(RearTorque) + "vMNu" + String(int(0.006*RearTorque)) + "b" + "0m";
   disp2str = String(int(0.621371 * VehSpeed)) + "vHPMu" + String(int(VehSpeed/20)) + "b0m  TEaST  d2x400r";
   
