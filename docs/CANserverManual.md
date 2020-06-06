@@ -18,10 +18,37 @@ The CANserver is designed to plug and play easily under the passenger seat! Rais
 
 (images)
 
-** Hardware overview **
-
+**Hardware overview**
 ![CANserver Hardware](img/serverfeatures.jpg)
 
+CANserver is based around a common ESP32 board that is powerful and easily programmed with Arduino.
+
+There are three 12v+CAN connections--the left and bottom are hardwired for pass-through, and the top's 12v line is after the power switch. These are designed to support various CAN harnesses, and options should be available for OBDII, Tesla Chassis, DB9, or make your own using the standard SIP pins or XPH connectors.
+
+After the power switch, there is a 7-30v to 5v switching regulator powering the rest of the board.
+
+Next there is a CAN tranceiver, which is pulled high in hardware as shipped to disable transmission for customer confidence that this system can not negatively affect their vehicle. Enabling transmission can be dangerous and the user accepts all responsibility.
+
+There are two configuration resistor pads (these will be jumpers in the future). RIO15 is used to configure as "CANServer2" SSID at startup so that two CANservers can be installed on two different CANbusses simultaneously. The second pad is for future use.
+
+There is space to add your own pushbutton inputs, LED outputs, and I2C connector.
+
+
+**Arduino programming and configuration**
+
+The board uses the standard Node32S ESP32 Arduino board. 
+
+In Arduino Preferences, add the following to your Board Manager URLs:
+
+    https://dl.espressif.com/dl/package_esp32_index.json
+
+Then under Board Manager, install *esp32 by Espressif Systems*
+
+Under Boards, select Node32S
+
+When uploading your program, once you see *Connecting...* **you must hold down the IO0 boot button** (to the right of the right of the USB cable) for ~2sec in order to start downloading.
+
+![Uploading](img/uploadingbutton.png)
 
 
 Jun 5, 2020
