@@ -18,7 +18,11 @@ The CANserver is designed to plug and play easily under the passenger seat! Rais
 
 (images)
 
-**Hardware overview**
+**Setup of data**
+
+In the futre hopefully you will able to easily choose what data to display on your microDisplays. Until then, it must be hardcoded into the Arduino program. (stay tuned!)
+
+### Hardware overview
 ![CANserver Hardware](img/serverfeatures.jpg)
 
 CANserver is based around a common ESP32 board that is powerful and easily programmed with Arduino.
@@ -34,7 +38,9 @@ There are two configuration resistor pads (these will be jumpers in the future).
 There is space to add your own pushbutton inputs, LED outputs, and I2C connector.
 
 
-**Arduino programming and configuration**
+## Arduino programming and configuration
+
+**Setup**
 
 The board uses the standard Node32S ESP32 Arduino board. 
 
@@ -45,6 +51,10 @@ In Arduino Preferences, add the following to your Board Manager URLs:
 Then under Board Manager, install *esp32 by Espressif Systems*
 
 Under Boards, select Node32S
+
+You may need to install the Silabs USB drivers at https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers
+
+**Programming**
 
 When uploading your program, once you see *Connecting...* **you must hold down the IO0 boot button** (to the right of the right of the USB cable) for ~2sec in order to start downloading.
 
