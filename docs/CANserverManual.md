@@ -8,15 +8,18 @@ CANserver should be connected to your CAN network with a supplied cable harness.
 
 **Tesla powertrain bus**
 
-Use the OBD harness to connect to your car's built-in (2020+) OBD connector, or you will need to buy a 3rd party OBD harness that plugs behind the center console.
+Use the OBD harness to connect to your car's built-in (2020+) OBD connector, or you will need to buy a 3rd party OBD harness that plugs behind the center console. Note there are different harnesses for 2018 Model 3, and 2019+ Model Y and 3. 
 
-(more)
+    https://www.gpstrackingamerica.com/?s=tesla
+    https://www.e-mobility-driving-solutions.com/produkt-kategorie/cable/?lang=en
+
+(need to add common PT signals)
 
 **Tesla chassis bus**
 
 The CANserver is designed to plug and play easily under the passenger seat! Raise the seat to full height and look for a small box with a yellow connector. While the car is in Park, squeeze and pull to release the cable from the seat box. Plug it into the CANserver and plug the chassis pass-through cable into the seat box. Use the included double sized foam to mount the CANserver under the seat.
 
-(images)
+(add images, video, common signals)
 
 **Setup of data**
 
@@ -60,5 +63,12 @@ When uploading your program, once you see *Connecting...* **you must hold down t
 
 ![Uploading](img/uploadingbutton.png)
 
+**FAQ/etc**
 
-Jun 5, 2020
+I laid out the board to accept two common ESP32 modules and to use commonly available parts. A few notes:
+
+- Make sure the ESP32 board is in the rightmost 19 pin sockets (the 20-pin sockets are common stock)
+- A leg is purposely bent on the ESP32 board so it does not go into the socket. I found out the hard way that adding a 5v input there for the alternate board power is bad with 3.3V GPIO. (may add a jumper in the future rev)
+- 5mm LEDs on v1 are pointless as one conflicts with serial TX, and the other already exists on the module. (may move to other IO in future rev)
+
+Jun 7, 2020
