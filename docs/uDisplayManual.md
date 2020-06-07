@@ -37,7 +37,9 @@ In addition to the main data signal mode, the microDisplay supports text, scroll
 
 **24-LED bargraph**
 
-Though I may design a dedicated board for this in the future, this starts with an Adafruit bargraph I2C backpack. I paint the front white and add a left or right board to the back so it can connect to the microDisplay. You are welcome to build, customize, and add your own! Each display supports one bargraph.
+![LED bargraph](img/bargraph.jpg)
+
+Though I may design a dedicated board for this in the future, this starts with an Adafruit bargraph I2C backpack. I paint the front black, add a black filter sheet, and include a left or right board to the back so it can connect to the microDisplay. You are welcome to build, customize, and add your own! Each display supports one bargraph.
 
 
 **Right board**
