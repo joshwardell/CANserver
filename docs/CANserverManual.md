@@ -55,9 +55,9 @@ Then under Board Manager, install *esp32 by Espressif Systems*
 
 Under Boards, select Node32S
 
-You may need to install the Silabs USB drivers at https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers
+You may need to install the [Silabs USB drivers](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers)
 
-**Librarires**
+**Libraries**
 
 A few additional libraries are needed to compile the sketch.
 
@@ -83,4 +83,4 @@ I laid out the board to accept two common ESP32 modules and to use commonly avai
 - A leg is purposely bent on the ESP32 board so it does not go into the socket. I found out the hard way that adding a 5v input there for the alternate board power is bad with 3.3V GPIO. (may add a jumper in the future rev)
 - 5mm LEDs on v1 are pointless as one conflicts with serial TX, and the other already exists on the module. (may move to other IO in future rev)
 
-Jun 7, 2020
+Jun 8, 2020
