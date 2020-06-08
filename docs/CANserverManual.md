@@ -57,6 +57,18 @@ Under Boards, select Node32S
 
 You may need to install the Silabs USB drivers at https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers
 
+**Librarires**
+
+A few additional libraries are needed to compile the sketch.
+
+1) Download and install ESPASyncWebServer from https://github.com/me-no-dev/ESPAsyncWebServer 
+    
+    1.1) This will also require ASyncTCP from https://github.com/me-no-dev/AsyncTCP
+    
+2) Download and install esp32_can from https://github.com/collin80/esp32_can
+    
+    2.1) This will also require can_common from https://github.com/collin80/can_common
+
 **Programming**
 
 When uploading your program, once you see *Connecting...* **you must hold down the IO0 boot button** (to the right of the right of the USB cable) for ~2sec in order to start downloading.
