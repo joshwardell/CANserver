@@ -304,7 +304,7 @@ void loop(){
 */
       case 0x252:
         MaxRegen =  0.01 * float((message.data.byte[1] * 256) + message.data.byte[0]);
-        MaxDisChg = 0.01 * float((message.data.byte[3] * 256) + message.data.byte[1]);
+        MaxDisChg = 0.01 * float((message.data.byte[3] * 256) + message.data.byte[2]);
         break;
 
       case 0x257: //VehSpeed = 0;     //ID 257 SB 12 u12 scale .08 offset -40 KPH
