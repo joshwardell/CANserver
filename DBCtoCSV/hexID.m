@@ -1,4 +1,4 @@
-%convertStringValue to hex
+%Octave function to convert string value to hex
 %Chris Allemang Jun 10 2020
 %To be used with DBCtoCSV.m
 
