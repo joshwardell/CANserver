@@ -7,6 +7,9 @@ http://www.jwardell.com/canserver
 
 ![CANserver](docs/img/server3d.jpg)
 
+Please see this thread for development discussion:
+https://teslaownersonline.com/threads/canserver-development.16373/
+
 TODO list for the near future:
 * Customization of CAN messages and signals - grab string from serial or web and convert to message ID, bits, scale, units, etc.
 * Customization of each display - assingning signals, format, etc
