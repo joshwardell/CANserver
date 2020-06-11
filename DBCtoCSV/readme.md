@@ -4,3 +4,5 @@ Using Octave, https://octave.sourceforge.io, and comFramework, https://sourcefor
 | --- |	--- |	--- |	--- |	--- |	--- |	--- |	--- |	--- |
 
 The .stg file can be edited to change what is extracted from the DBC file into the Octave structure and the Octave program can be changed to change the resulting .xlsx file. 
+
+Octave pacakges io and windows will also need to be installed. https://octave.sourceforge.io/packages.php
