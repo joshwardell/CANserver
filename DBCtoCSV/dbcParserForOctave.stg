@@ -1,0 +1,22 @@
+renderCluster(cluster,info) ::= "<renderBus(first(cluster.busAry))>"
+renderBus(bus) ::= <<
+dbcFile.database = '<bus.networkFile>';
+dbcFile.frameAry = repmat(struct,<length(bus.frameAry)>,1);
+<bus.frameAry:{frame|<first(frame.pduAry):renderPdu()>}>
+>>
+
+renderPdu(pdu) ::= <<
+dbcFile.frameAry(<frame.i>).name = '<pdu.name>';
+dbcFile.frameAry(<frame.i>).id = '<pdu.id>';
+dbcFile.frameAry(<frame.i>).signalAry = repmat(struct,<pdu.noSignals>,1);
+<pdu.signalAry:renderSignal()>
+>>
+
+renderSignal(s) ::= <<
+dbcFile.frameAry(<frame.i>).signalAry(<s.i>).name = '<s.name>';
+dbcFile.frameAry(<frame.i>).signalAry(<s.i>).unit = '<s.unit>';
+dbcFile.frameAry(<frame.i>).signalAry(<s.i>).startBit = <s.startBit>;
+dbcFile.frameAry(<frame.i>).signalAry(<s.i>).length = <s.length>;
+dbcFile.frameAry(<frame.i>).signalAry(<s.i>).factor = <s.factor>;
+dbcFile.frameAry(<frame.i>).signalAry(<s.i>).offset = <s.offset>;<\n>
+>>
