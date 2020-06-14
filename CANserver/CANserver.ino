@@ -11,6 +11,7 @@
 #include "WiFi.h"   //esp32
 #include "ESPAsyncWebServer.h" //https://github.com/me-no-dev/ESPAsyncWebServer
 #include <esp32_can.h>  //RX GPIO16 TX GPIO 17 https://github.com/collin80/esp32_can
+#include <ArduinoOTA.h>
 
 #define LED1 1    //shared with serial tx - try not to use
 #define LED2 2    //onboard blue LED
@@ -87,6 +88,31 @@ void setup(){
   Serial.print("AP IP address: ");
   Serial.println(IP);
 
+  // set up ArduinoOTA
+  ArduinoOTA.setHostname(ssid); // Same as SSID
+  ArduinoOTA.setPassword(password);
+
+  ArduinoOTA.onStart([]() {
+    Serial.println("ArduinoOTA: Start\n");
+  });
+  ArduinoOTA.onEnd([]() {
+    Serial.println("ArduinoOTA: End\n");
+  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("Progress: %u%%\n", (progress / (total / 100)));
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    Serial.println("\n");
+  });
+  ArduinoOTA.begin();
+  Serial.println("OTA ready");
+
   // set up servers for displays
   server.on("/disp0", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "text/plain", disp0str);
@@ -135,6 +161,8 @@ void setup(){
 }
  
 void loop(){
+  ArduinoOTA.handle();
+  
   if (Serial) {
     long currentMillis = millis();
     if (currentMillis - previouscycle >= 500) { //Every 500ms
