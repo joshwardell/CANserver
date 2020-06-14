@@ -261,9 +261,9 @@ void loop(){
   //set up display commands from data, see microDisplay command reference
   disp0mode = 0;
   /////disp0str = "-901vFDu0m11l"; //for display test
-  disp0str = String(BattPower) + "vWK  Bu" + String(int(0.008 * BattPower)) + "b" + disp0mode + "m" + "3s12345tI1l";
-  disp1str = String(RearTorque) + "vMNu" + String(int(0.006*RearTorque)) + "b" + "0m";
-  disp2str = String(int(0.621371 * VehSpeed)) + "vHPMu" + String(int(VehSpeed/20)) + "b0m  TEaST  d2x400r";
+  disp0str = String(BattPower) + "vWK  Bu" + String(int(0.008 * BattPower)) + "b" + disp0mode + "m" + "3s12345tI1l120r";
+  disp1str = String(RearTorque) + "vMNu" + String(int(0.006*RearTorque)) + "b" + "0m120r";
+  disp2str = String(int(0.621371 * VehSpeed)) + "vHPMu" + String(int(VehSpeed/20)) + "b0m  TEaST  d2x120r";
   
   CAN_FRAME message;
   if (CAN0.read(message)) {
