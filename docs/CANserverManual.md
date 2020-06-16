@@ -43,7 +43,9 @@ There is space to add your own pushbutton inputs, LED outputs, and I2C connector
 
 ## Arduino programming and configuration
 
-**Setup**
+**Arduino Setup**
+
+Download and install the Arduino desktop app from https://www.arduino.cc
 
 The board uses the standard Node32S ESP32 Arduino board. 
 
@@ -59,21 +61,31 @@ You may need to install the [Silabs USB drivers](https://www.silabs.com/products
 
 **Libraries**
 
-A few additional libraries are needed to compile the sketch.
+The sketch requires several libraries to compile. Download the zip and install these libraries:
 
-1) Download and install ESPASyncWebServer from https://github.com/me-no-dev/ESPAsyncWebServer 
-    
-    1.1) This will also require ASyncTCP from https://github.com/me-no-dev/AsyncTCP
-    
-2) Download and install esp32_can from https://github.com/collin80/esp32_can
-    
-    2.1) This will also require can_common from https://github.com/collin80/can_common
+- ESPASyncWebServer from https://github.com/me-no-dev/ESPAsyncWebServer 
+- ASyncTCP from https://github.com/me-no-dev/AsyncTCP
+- esp32_can from https://github.com/collin80/esp32_can
+- can_common from https://github.com/collin80/can_common
 
 **Programming**
 
 When uploading your program, once you see *Connecting...* **you must hold down the IO0 boot button** (to the right of the right of the USB cable) for ~2sec in order to start downloading.
 
 ![Uploading](img/uploadingbutton.png)
+
+## PlatformIO over-the-air programming
+
+The code can now also be compiled and uploaded using PlaformIO https://platformio.org
+
+In your terminal, insall using
+
+    brew install platformio
+ 
+The first time you compile you must be internet connected so that it can install the needed libraries.
+Afterwards, first power and connect your computer to the CANserver Wifi, then you can compile and upload new code
+
+    platformio run --target upload --upload-port 192.168.4.1
 
 **FAQ/etc**
 
