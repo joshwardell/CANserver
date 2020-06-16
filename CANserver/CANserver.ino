@@ -2,7 +2,7 @@
  *   http://www.jwardell.com/canserver/
  *   To be used with microDisplay
  *   
- *   Jun 3 2020
+ *   Jun 15 2020
  *   
  *   Board: Node32s
  *   (must press IO0 right button to start programming)
@@ -46,7 +46,7 @@ static int InvHStemp376 = 0;     //ID 376 Byte 1 scale .5 offset -20 C
 static int BSR = 0; 
 static int BSL = 0; 
 static int brightness = 4;       //LED brightness
-
+static int DisplayOn = 1;       //to turn off displays if center screen is off
 
 int disp0mode;
 int disp1mode;
@@ -258,12 +258,20 @@ void loop(){
     }
   } //serial available
 
-  //set up display commands from data, see microDisplay command reference
-  disp0mode = 0;
-  /////disp0str = "-901vFDu0m11l"; //for display test
-  disp0str = String(BattPower) + "vWK  Bu" + String(int(0.008 * BattPower)) + "b" + disp0mode + "m" + "3s12345tI1l120r";
-  disp1str = String(RearTorque) + "vMNu" + String(int(0.006*RearTorque)) + "b" + "0m120r";
-  disp2str = String(int(0.621371 * VehSpeed)) + "vHPMu" + String(int(VehSpeed/20)) + "b0m  TEaST  d2x120r";
+  if (DisplayOn == 1) {
+    //set up display commands from data, see microDisplay command reference
+    disp0mode = 0;
+    /////disp0str = "-901vFDu0m11l"; //for display test
+    disp0str = String(BattPower) + "vWK  Bu" + String(int(0.008 * BattPower)) + "b" + String(disp0mode) + "m" + "120r";
+    disp1str = String(RearTorque) + "vMNu" + String(int(0.006*RearTorque)) + "b" + "0m120r";
+    disp2str = String(int(0.621371 * VehSpeed)) + "vHPMu" + String(int(VehSpeed/20)) + "b0m  TEaST  d2x120r";
+  
+  } else if (DisplayOn == 0) {//turn all displays black if car screen is off
+    disp0str = "1m t1000r"; //text mode black space refresh 1sec
+    disp1str = "1m t1000r"; //text mode black space refresh 1sec
+    disp2str = "1m t1000r"; //text mode black space refresh 1sec
+  }
+  
   
   CAN_FRAME message;
   if (CAN0.read(message)) {
@@ -280,6 +288,12 @@ void loop(){
     digitalWrite(LED2, !digitalRead(LED2)); //flash LED2 to show data Rx
     switch (message.id)
     {
+      case 0x00C:
+        if (message.length == 8) {
+          DisplayOn = (message.data.byte[0] & 0x0020) >> 5;  //SG_ UI_displayOn : 5|1@1+ (1,0) [0|1] ""
+        }
+        break;
+    
       case 0x132:
         if (message.length == 8) {
           int tempvolts;
