@@ -10,6 +10,7 @@
 
 #include "WiFi.h"              //esp32
 #include "ESPAsyncWebServer.h" //https://github.com/me-no-dev/ESPAsyncWebServer
+
 #include <esp32_can.h>         //RX GPIO16 TX GPIO 17 https://github.com/collin80/esp32_can
 #include "ArduinoOTA.h"
 #include <generalCANSignalAnalysis.h> //https://github.com/iChris93/ArduinoLibraryForCANSignalAnalysis
@@ -34,6 +35,7 @@ static int BattAmps = 0;        //ID 132 byte 2+3 scale -.1 offset 0 A
 static int BattPower = 0;       //V*A
 static int RearTorque = 0;      //ID 1D8 startbit 24 signed13 scale 0.25 NM
 static int FrontTorque = 0;     //ID 1D8 startbit 24 signed13 scale 0.25 NM
+
 static int MinBattTemp = 0;     //ID 312 SB 44 u9 scale .25 offset -25 C
 static int BattCoolantRate = 0; //ID 241 SB 0 u9 scale .01 LPM
 static int PTCoolantRate = 0;   //ID 241 SB 22 u9 scale .01 LPM
@@ -50,6 +52,7 @@ static int BSR = 0;
 static int BSL = 0;
 static int brightness = 4; //LED brightness
 static int DisplayOn = 1;  //to turn off displays if center screen is off
+
 
 int disp0mode;
 int disp1mode;
@@ -108,16 +111,13 @@ void setup()
   });
   ArduinoOTA.onError([](ota_error_t error) {
     Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR)
-      Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR)
-      Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR)
-      Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR)
-      Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR)
-      Serial.println("End Failed");
+
+    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+
     Serial.println("\n");
   });
   ArduinoOTA.begin();
@@ -179,9 +179,9 @@ void setup()
 void loop()
 {
   ArduinoOTA.handle();
-
   if (Serial)
   {
+
     long currentMillis = millis();
     if (currentMillis - previouscycle >= 500)
     { //Every 500ms
@@ -279,17 +279,21 @@ void loop()
     }
   } //serial available
 
+
   if (DisplayOn == 1)
   {
+
     //set up display commands from data, see microDisplay command reference
     disp0mode = 0;
     /////disp0str = "-901vFDu0m11l"; //for display test
     disp0str = String(BattPower) + "vWK  Bu" + String(int(0.008 * BattPower)) + "b" + String(disp0mode) + "m" + "120r";
+
     disp1str = String(RearTorque) + "vMNu" + String(int(0.006 * RearTorque)) + "b" + "0m120r";
     disp2str = String(int(0.621371 * VehSpeed)) + "vHPMu" + String(int(VehSpeed / 20)) + "b0m  TEaST  d2x120r";
   }
   else if (DisplayOn == 0)
   {                         //turn all displays black if car screen is off
+
     disp0str = "1m t1000r"; //text mode black space refresh 1sec
     disp1str = "1m t1000r"; //text mode black space refresh 1sec
     disp2str = "1m t1000r"; //text mode black space refresh 1sec
@@ -311,6 +315,7 @@ void loop()
     digitalWrite(LED2, !digitalRead(LED2)); //flash LED2 to show data Rx
     switch (message.id)
     {
+
     case 0x00C:
       if (message.length == 8)
       {
@@ -329,6 +334,7 @@ void loop()
           if (BattAmps > 8190)
           { //15-bit signed conversion 16384/2
             BattAmps = 0 - (16384 - BattAmps);
+
           }
           BattAmps = -0.1 * float(BattAmps); //-0.1 scale
           BattPower = BattVolts * BattAmps / 100;
@@ -373,6 +379,7 @@ void loop()
         v12v261 = (((message.data.byte[1] & 0x0F) << 12) | (message.data.byte[0] << 4)) >> 4;  //ID 261 SB0 u12 scale 0.005444 V
         break;
 */
+
     case 0x252:
       MaxRegen = analyzeMessage.getSignal(message.data.uint64, 0, 16, 0.01, 0);   //BMS_maxRegenPower, starting bit 0, length 16, 0.01 scale, 0 offset
       MaxDisChg = analyzeMessage.getSignal(message.data.uint64, 16, 16, 0.01, 0); //BMS_maxDischargePower, starting bit 16, length 16, 0.01 scale, 0 offset
@@ -384,6 +391,7 @@ void loop()
         VehSpeed = analyzeMessage.getSignal(message.data.uint64, 12, 12, 0.08, -40); //UIspeed_signed257, starting bit 12, length 12, 0.08 scale, -40 offset
       }
       break;
+
 
     case 0x399: //Blind spots
       if (message.length == 8)
