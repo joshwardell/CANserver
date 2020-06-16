@@ -12,7 +12,7 @@
 #include "ESPAsyncWebServer.h" //https://github.com/me-no-dev/ESPAsyncWebServer
 #include <esp32_can.h>         //RX GPIO16 TX GPIO 17 https://github.com/collin80/esp32_can
 #include "ArduinoOTA.h"
-#include <generalCANSignalAnalysis.h>
+#include <generalCANSignalAnalysis.h> //https://github.com/iChris93/ArduinoLibraryForCANSignalAnalysis
 
 generalCANSignalAnalysis analyzeMessage; //initialize library
 
