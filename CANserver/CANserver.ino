@@ -94,9 +94,11 @@ void setup(){
 
   ArduinoOTA.onStart([]() {
     Serial.println("ArduinoOTA: Start\n");
+    server.end(); //Pause server during update
   });
   ArduinoOTA.onEnd([]() {
     Serial.println("ArduinoOTA: End\n");
+    server.begin(); //Resume server after update is finished
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
     Serial.printf("Progress: %u%%\n", (progress / (total / 100)));
