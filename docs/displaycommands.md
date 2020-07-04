@@ -14,7 +14,7 @@ Note that values are divided by 10 with decimal and negative automatically drawn
 
 Here is the current list of microDisplay command characters:
 
-- **m** display mode - see description of display modes below
+- **m** display mode - see description of display modes below. Changing mode clears screen.
 - **v** value to display * 10
 - **u** units - uppercase characters starting from the bottom left (in reverse order)
   - D is replaced with a degree symbol in the top-right
@@ -49,8 +49,9 @@ While the microDisplay defaults to the full-height value display, there are othe
   - Small bottom line shows firmware rev date and status of left and right GPIOs
 
 
-The display will http post the values of the left and right GPIOs to /post0 /post1 etc as "11" "01" etc
+The display will http post the values of the left and right GPIOs to /post0 /post1 etc as "11" "01" etc. This will be followed by r and the revdate (starting with rev 20200621).
 
-Document updated June 5 2020 for 20200602 firmware
+Document updated June 21 2020 for 20200621 firmware
 
 http://www.jwardell.com/microdisplay
+

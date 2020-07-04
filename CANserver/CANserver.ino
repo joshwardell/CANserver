@@ -68,7 +68,7 @@ unsigned long previouscycle = 0;
 AsyncWebServer server(80);
 
 void setup(){
-    
+  
     //pinMode(LED1,OUTPUT); // LED1 shares TXpin with serial
     pinMode(LED2,OUTPUT);
     pinMode(CFG1,INPUT_PULLUP);
@@ -135,6 +135,7 @@ void setup(){
     //receive posts of display buttons, TODO do something with the buttons
     server.on("/post0", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL,
               [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
+
         Serial.print("POST0: ");
         for (size_t i = 0; i < len; i++) {
             Serial.write(data[i]);
