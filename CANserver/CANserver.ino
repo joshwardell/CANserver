@@ -2,7 +2,7 @@
  *   http://www.jwardell.com/canserver/
  *   To be used with microDisplay
  *
- *   July 4 2020
+ *   July 7 2020
  *
  *   Board: Node32s
  *   (must press IO0 right button to start programming)
@@ -10,9 +10,9 @@
 
 #include "WiFi.h"   //esp32
 #include "ESPAsyncWebServer.h" //https://github.com/me-no-dev/ESPAsyncWebServer
-#include <esp32_can.h>  //RX GPIO16 TX GPIO 17 https://github.com/collin80/esp32_can
-#include <ArduinoOTA.h>
-#include <generalCANSignalAnalysis.h> //https://github.com/iChris93/ArduinoLibraryForCANSignalAnalysis
+#include "esp32_can.h"  //RX GPIO16 TX GPIO 17 https://github.com/collin80/esp32_can
+#include "ArduinoOTA.h"
+#include "generalCANSignalAnalysis.h" //https://github.com/iChris93/ArduinoLibraryForCANSignalAnalysis
 
 generalCANSignalAnalysis analyzeMessage; //initialize library
 
