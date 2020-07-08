@@ -273,7 +273,17 @@ void loop(){
         /////disp0str = "-901vFDu0m11l"; //for display test
         disp0str = String(BattPower) + "vWK  Bu" + String(int(0.008 * BattPower)) + "b" + String(disp0mode) + "m" + "120r";
         disp1str = String(RearTorque) + "vMNu" + String(int(0.006*RearTorque)) + "b" + "0m120r";
-        disp2str = String(int(0.621371 * VehSpeed)) + "vHPMu" + String(int(VehSpeed/20)) + "b0m  TEaST  d2x120r";
+        
+        if (BSR != 0)   //Blind spot arrows over speed display
+        {
+          disp2str = "2v63488c6m120r";
+        }
+        else if (BSL != 0)
+        {
+            disp2str = "1v63488c6m120r";
+        } else {
+            disp2str = String(int(0.621371 * VehSpeed)) + "vHPMu" + String(int(VehSpeed/20)) + "b0m120r";
+        } //if BSR BSL
         
     } else if (DisplayOn == 0) {//turn all displays black if car screen is off
         disp0str = "1m t1000r"; //text mode black space refresh 1sec

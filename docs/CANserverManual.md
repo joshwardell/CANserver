@@ -83,9 +83,15 @@ In your terminal, insall using
     brew install platformio
  
 The first time you compile you must be internet connected so that it can install the needed libraries.
-Afterwards, first power and connect your computer to the CANserver Wifi, then you can compile and upload new code
+Afterwards, first power and connect your computer to the CANserver Wifi, then you can compile and upload new code with terminal command:
 
-    platformio run --target upload --upload-port 192.168.4.1
+    pio run --target upload -e node32s_ota
+
+PlaformIO can also program over USB. First determine your USB port and update the platformio.ini if neccesary. Run terminal command:
+
+    pio run --target upload -e node32s
+
+Remember to press the right IO0 button when you see "Connecting..."
 
 **FAQ/etc**
 
@@ -95,4 +101,4 @@ I laid out the board to accept two common ESP32 modules and to use commonly avai
 - A leg is purposely bent on the ESP32 board so it does not go into the socket. I found out the hard way that adding a 5v input there for the alternate board power is bad with 3.3V GPIO. (may add a jumper in the future rev)
 - 5mm LEDs on v1 are pointless as one conflicts with serial TX, and the other already exists on the module. (may move to other IO in future rev)
 
-Jun 8, 2020
+Jul 7, 2020
