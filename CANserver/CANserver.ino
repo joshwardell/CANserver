@@ -31,17 +31,18 @@ const char* password = "JWcanServer2020";
 
 int testcounter = 100;
 
-static int BattVolts = 0;     //ID 132 byte 0+1 scale .01 V
-static int BattAmps = 0;      //ID 132 byte 2+3 scale -.1 offset 0 A
-static int BattPower = 0;         //V*A
-static int RearTorque = 0;     //ID 1D8 startbit 24 signed13 scale 0.25 NM
-static int FrontTorque = 0;     //ID 1D8 startbit 24 signed13 scale 0.25 NM
-static int MinBattTemp = 0;   //ID 312 SB 44 u9 scale .25 offset -25 C
+static int BattVolts = 0;        //ID 132 byte 0+1 scale .01 V
+static int BattAmps = 0;         //ID 132 byte 2+3 scale -.1 offset 0 A
+static int BattPower = 0;        //V*A
+static int RearTorque = 0;       //ID 1D8 startbit 24 signed13 scale 0.25 NM
+static int FrontTorque = 0;      //ID 1D8 startbit 24 signed13 scale 0.25 NM
+static int MinBattTemp = 0;      //ID 312 SB 44 u9 scale .25 offset -25 C
 static int BattCoolantRate = 0;  //ID 241 SB 0 u9 scale .01 LPM
 static int PTCoolantRate = 0;    //ID 241 SB 22 u9 scale .01 LPM
-static int MaxRegen = 0;      //ID 252 Bytes 0+1 scale .01 kW
-static int MaxDisChg = 0;     //ID 252 Bytes 2+3 scale .01 kW
-static int VehSpeed = 0;     //ID 257 SB 12 u12 scale .08 offset -40 KPH
+static int MaxRegen = 0;         //ID 252 Bytes 0+1 scale .01 kW
+static int MaxDisChg = 0;        //ID 252 Bytes 2+3 scale .01 kW
+static int VehSpeed = 0;         //ID 257 SB 12 u12 scale .08 offset -40 KPH
+static int SpeedUnit = 0;        //ID 257
 static int v12v261 = 0;          //ID 261 SB0 u12 scale 0.005444 V
 static int BattCoolantTemp = 0;  //ID 321 SB0 u10 scale 0.125 offset -40 C
 static int PTCoolantTemp = 0;    //ID 321 SB10 u10 scale 0.125 offset -40 C
@@ -282,7 +283,11 @@ void loop(){
         {
             disp2str = "1v63488c6m120r";
         } else {
-            disp2str = String(int(0.621371 * VehSpeed)) + "vHPMu" + String(int(VehSpeed/20)) + "b0m120r";
+            if (SpeedUnit == 1) { //Convert to MPH
+                disp2str = String(int(0.621371 * VehSpeed)) + "vHPMu" + String(int(0.008 * BattPower)) + "b0m120r";
+            } else {   //speedunit = 1 for kph
+                disp2str = String(int(VehSpeed)) + "vHPKu" + String(int(0.008 * BattPower)) + "b0m120r";
+            }
         } //if BSR BSL
         
     } else if (DisplayOn == 0) {//turn all displays black if car screen is off
@@ -364,11 +369,18 @@ void loop(){
                 
             case 0x257: //VehSpeed = 0;     //ID 257 SB 12 u12 scale .08 offset -40 KPH
                 if (message.length == 8) {
+                    ///SpeedUnit = analyzeMessage.getSignal(message.data.uint64, 32, 1, 1, 0, false, littleEndian); //strange this doesn't change with UI setting! Location?
                     VehSpeed = analyzeMessage.getSignal(message.data.uint64, 12, 12, 0.08, -40, false, littleEndian);
                 }
                 break;
                 
-                
+            case 0x293:    
+                if (message.length == 8) {
+                    SpeedUnit = analyzeMessage.getSignal(message.data.uint64, 13, 1, 1, 0, false, littleEndian); //UI distance setting to toggle speed display units
+                    
+                }
+                break;
+                                
             case 0x399: //Blind spots
                 if (message.length == 8) {
                     BSR = analyzeMessage.getSignal(message.data.uint64, 6, 2, 1, 0, false, littleEndian);
