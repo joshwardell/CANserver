@@ -105,16 +105,30 @@ void setup(){
     ArduinoOTA.setPassword(password);
     
     ArduinoOTA.onStart([]() {
-        Serial.println("ArduinoOTA: Start\n");
-        server.end(); //Pause server during update
+        String type;
 
-        //Turn off access to the file system
-        SPIFFS.end();
+        //Don't service any http requests while updating
+        server.end();
+        if (ArduinoOTA.getCommand() == U_FLASH)
+        {
+            type = "sketch";
+        }
+        else // U_SPIFFS
+        {
+            type = "filesystem";
+
+            //Shut down access to the SPIFFS filesystem
+            SPIFFS.end();
+        }
+
+        Serial.println("Start updating " + type);
     });
     ArduinoOTA.onEnd([]() {
         Serial.println("ArduinoOTA: End\n");
         delay(500);
+
         server.begin(); //Resume server after update is finished
+        SPIFFS.begin(); //Resume access to the SPIFFS filesystem
     });
     ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
         Serial.printf("Progress: %u%%\n", (progress / (total / 100)));
