@@ -1,2 +1,4 @@
 
 .pio/
+**/.DS_Store
+.vscode/

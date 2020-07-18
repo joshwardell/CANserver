@@ -14,6 +14,8 @@
 #include "ArduinoOTA.h"
 #include "generalCANSignalAnalysis.h" //https://github.com/iChris93/ArduinoLibraryForCANSignalAnalysis
 
+#include <SPIFFS.h>
+
 generalCANSignalAnalysis analyzeMessage; //initialize library
 
 #define LED1 1    //shared with serial tx - try not to use
@@ -82,6 +84,8 @@ void setup(){
     Serial.begin(57600);  //comment out serial to use LED1
     delay(200);
     Serial.println();
+
+    SPIFFS.begin();
     
     CAN0.begin(BITRATE);
     
@@ -133,6 +137,10 @@ void setup(){
         request->send(200, "text/plain", disp2str);
     });
     
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+        request->send(SPIFFS, "/html/index.html");
+    });
+
     //receive posts of display buttons, TODO do something with the buttons
     server.on("/post0", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL,
               [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
