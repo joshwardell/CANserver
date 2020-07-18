@@ -15,6 +15,7 @@
 #include "generalCANSignalAnalysis.h" //https://github.com/iChris93/ArduinoLibraryForCANSignalAnalysis
 
 #include <SPIFFS.h>
+#include <SPIFFSEditor.h>
 
 generalCANSignalAnalysis analyzeMessage; //initialize library
 
@@ -85,6 +86,7 @@ void setup(){
     delay(200);
     Serial.println();
 
+    //Spin up access to the file system
     SPIFFS.begin();
     
     CAN0.begin(BITRATE);
@@ -105,6 +107,9 @@ void setup(){
     ArduinoOTA.onStart([]() {
         Serial.println("ArduinoOTA: Start\n");
         server.end(); //Pause server during update
+
+        //Turn off access to the file system
+        SPIFFS.end();
     });
     ArduinoOTA.onEnd([]() {
         Serial.println("ArduinoOTA: End\n");
@@ -126,6 +131,10 @@ void setup(){
     ArduinoOTA.begin();
     Serial.println("OTA ready");
     
+
+    server.addHandler(new SPIFFSEditor(SPIFFS, "admin","password"));
+
+
     // set up servers for displays
     server.on("/disp0", HTTP_GET, [](AsyncWebServerRequest *request){
         request->send(200, "text/plain", disp0str);
@@ -139,6 +148,14 @@ void setup(){
     
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         request->send(SPIFFS, "/html/index.html");
+    });
+
+    //Serve our compressed version of zepto
+    server.on("/js/zepto.min.js", HTTP_GET,  [](AsyncWebServerRequest *request){
+        AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/js/zepto.min.js.gz", "text/javascript");
+        response->addHeader("Content-Encoding", "gzip");
+        response->addHeader("Cache-Control", "max-age=600");
+        request->send(response);
     });
 
     //receive posts of display buttons, TODO do something with the buttons
