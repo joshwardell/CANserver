@@ -17,6 +17,8 @@
 #include <SPIFFS.h>
 #include <SPIFFSEditor.h>
 
+#define SETTINGSFILE "/settings.json"
+
 generalCANSignalAnalysis analyzeMessage; //initialize library
 
 #define LED1 1    //shared with serial tx - try not to use
@@ -88,6 +90,52 @@ void setup(){
 
     //Spin up access to the file system
     SPIFFS.begin();
+
+    //Lets sort out our settings files
+    if(!SPIFFS.exists(SETTINGSFILE)) 
+    {
+        //File didn't exist (or there was an error opening it)
+        //Lets create a new one and put some defaults into it.
+        File file = SPIFFS.open(SETTINGSFILE, FILE_WRITE);
+        if (!file) 
+        {
+            //Another check to see if we were able to write the file...  If we arn't thats bad stuff
+        }
+        else
+        {
+            file.println("{\
+                \"disp0\": {\
+                    \"mode\":0,\
+                    \"string\":\"\" \
+                },\
+                \"disp2\": {\
+                    \"mode\":0,\
+                    \"string\":\"\" \
+                },\
+                \"disp3\": {\
+                    \"mode\":0,\
+                    \"string\":\"\" \
+                }\
+            }");
+            file.close();
+        }
+    }
+    
+    //By now the settings file should either have been just created or already exist.  Lets load it
+    File file = SPIFFS.open(SETTINGSFILE, FILE_READ);
+    if (file)
+    {
+        //TODO: load the settings
+
+        file.close();
+    }
+    else
+    {
+        //There was a problem opening the settings file.  Thats not good.
+        Serial.println("Error opening settings file");
+
+        //Default our settings to somthing sane
+    }
     
     CAN0.begin(BITRATE);
     
