@@ -70,7 +70,7 @@ The sketch requires several libraries to compile. Download the zip and install t
 
 **Programming**
 
-When uploading your program, once you see *Connecting...* **you must hold down the IO0 boot button** (to the right of the right of the USB cable) for ~2sec in order to start downloading.
+When uploading your program via the USB port, once you see *Connecting...* **you must hold down the IO0 boot button** (to the right of the right of the USB cable) for ~2sec in order to start downloading.
 
 ![Uploading](img/uploadingbutton.png)
 
