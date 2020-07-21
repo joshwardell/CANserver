@@ -15,6 +15,7 @@
 #include "SDCard.h"
 #include "CanBus.h"
 #include "SPIFFileSystem.h"
+#include "DisplayState.h"
 #include "WebServer.h"
 
 #define SETTINGSFILE "/settings.json"
@@ -72,4 +73,8 @@ void loop(){
     CANServer::SerialPorts::handle();
     
     CANServer::CanBus::handle();
+
+    CANServer::DisplayState::display0->update();
+    CANServer::DisplayState::display1->update();
+    CANServer::DisplayState::display2->update();
 }

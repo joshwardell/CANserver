@@ -146,7 +146,7 @@ namespace CANServer
                         InvHStemp376 = message.data.byte[1];
                         break;
                         
-                        /*     case 0x712:
+                             case 0x712:
                         if (message.data.byte[0] = 0); //index 0
                         {
                         CellTemp1 = message.data.byte[1];

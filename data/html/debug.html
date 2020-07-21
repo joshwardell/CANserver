@@ -2,8 +2,69 @@
     <head>
         <title>Debug</title>
         <script src="/js/zepto.min.js"></script>
+        
+        <style>
+          input {
+            width: 50px;
+            margin-left:10px;
+          }
+        </style>
     </head>
     <body>
-        Debug
+        <H1>Debug</H1>
+        <div id="debugparams">Loading...</div>
+        <script>
+          function initialLoad() {
+            $.get('/debug_update', function(response){
+              populateValues(response, true);
+            });
+          }
+          
+          function updateLoad() {
+            $.get('/debug_update', function(response){
+              populateValues(response, false);
+            });
+          }
+          
+          function populateValues(data, initialLoad) {
+            if (initialLoad)
+            {
+              $('#debugparams').html('');
+              if ("vehiclestatus" in data) {
+                Object.keys(data.vehiclestatus).forEach((k, i) => {
+                  $newDiv = $('<div id="' + k + '"/>');
+                  $labelSpan = $('<span/>').addClass("item").html(k + ":");
+                  $newDiv.append($labelSpan);
+                  $theValue = $('<span/>').addClass('value').html(data.vehiclestatus[k]);
+                  $newDiv.append($theValue);
+                  $input = $('<input id="' + k + '"/>').val(data.vehiclestatus[k]).on('blur', function(e) {
+                    $this = $(this);
+                    if ($(this).data('changed') == true) {
+                      $(this).data('changed', false);
+                      $.post('/debug_save', { "key": $this.attr('id'), "value": $this.val() }, function(response) {
+                        updateLoad();
+                      })
+                    }
+                  }).on('change', function(e) {
+                    $(this).data('changed', true);
+                  });
+                  $newDiv.append($input);
+                  
+                  $('#debugparams').append($newDiv);
+                });
+              }
+            } else {
+              if ("vehiclestatus" in data) {
+                Object.keys(data.vehiclestatus).forEach((k, i) => {
+                  $('div#' + k + ' span.value').html(data.vehiclestatus[k]);
+                  $('div#' + k + ' input').val(data.vehiclestatus[k]);
+                }); 
+              }
+            }
+          }
+          
+          initialLoad();
+          setInterval('updateLoad()', 5000);
+        </script>
     </body>
 </html>

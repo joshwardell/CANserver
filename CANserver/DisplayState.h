@@ -1,7 +1,7 @@
 #ifndef __DISPLAYSTATE_H__
 #define __DISPLAYSTATE_H__
 
-#include <stdlib.h>
+#include <Arduino.h>
 
 namespace CANServer
 {
@@ -15,14 +15,13 @@ namespace CANServer
         ~DisplayState();
 
         const char* displayString() const;
-
-        void displayOn(const bool value);
+        void update();
 
     private:
         DisplayState(const int displayId);
 
         int _displayId;
-        bool _displayOn;
+        String _displayString;
     };
 }
 
