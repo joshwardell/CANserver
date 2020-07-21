@@ -3,7 +3,18 @@
 #include <Arduino.h>
 #include <esp32_can.h>
 
+#include "VehicleState.h"
+#include "generalCANSignalAnalysis.h" //https://github.com/iChris93/ArduinoLibraryForCANSignalAnalysis
+#include "pandaUDP.h"
+
+generalCANSignalAnalysis analyzeMessage; //initialize library
+
 #define BITRATE 500000  //CAN bitrate, Tesla=500000
+#define littleEndian true
+#define bigEndian false
+
+//Make sure the compiler knows this exists in our memory space
+extern PandaUDP panda;
 
 namespace CANServer
 {
@@ -27,9 +38,12 @@ namespace CANServer
 
         void handle()
         {
-#ifdef oookkklll
             CAN_FRAME message;
             if (CAN0.read(message)) {
+
+                // Send to UDP server if a client is connected.
+                panda.handleMessage(message);
+
                 /*    Serial.print(message.id, HEX);  ///debug display RX message
                 if (message.extended) Serial.print(" X ");
                 else Serial.print(" S ");
@@ -40,12 +54,15 @@ namespace CANServer
                 }
                 Serial.println();
                 */
-                digitalWrite(LED2, !digitalRead(LED2)); //flash LED2 to show data Rx
+                digitalWrite(2, !digitalRead(2)); //flash LED2 to show data Rx
+
+                CANServer::VehicleState* vehicleState = CANServer::VehicleState::instance();
+
                 switch (message.id)
                 {
                     case 0x00C:
                         if (message.length == 8) {
-                            DisplayOn = analyzeMessage.getSignal(message.data.uint64, 5, 1, 1, 0, false, littleEndian);  //SG_ UI_displayOn : 5|1@1+ (1,0) [0|1] ""
+                            vehicleState->DisplayOn = analyzeMessage.getSignal(message.data.uint64, 5, 1, 1, 0, false, littleEndian);  //SG_ UI_displayOn : 5|1@1+ (1,0) [0|1] ""
                         }
                         break;
                         
@@ -54,13 +71,10 @@ namespace CANServer
                             int tempvolts;
                             tempvolts = analyzeMessage.getSignal(message.data.uint64, 0, 16, 0.01, 0, false, littleEndian);
                             if ((tempvolts > 290) && (tempvolts < 420)) { //avoid some bad messages
-                                BattVolts = tempvolts;
-                                BattAmps = analyzeMessage.getSignal(message.data.uint64, 16, 16, -0.1, 0, true, littleEndian); //signed 15, mask off sign
-                                BattPower = BattVolts * BattAmps / 100;
+                                vehicleState->BattVolts = tempvolts;
+                                vehicleState->BattAmps = analyzeMessage.getSignal(message.data.uint64, 16, 16, -0.1, 0, true, littleEndian); //signed 15, mask off sign
+                                vehicleState->BattPower = vehicleState->BattVolts * vehicleState->BattAmps / 100;
                             }
-                            
-                            
-                            
                         }
                         break;
                         
@@ -69,14 +83,14 @@ namespace CANServer
                             int temptorque;
                             temptorque = analyzeMessage.getSignal(message.data.uint64, 24, 13, 0.25, 0, true, littleEndian);  //signed13, mask off sign
                             if ((temptorque < 5000) && (temptorque > -2000)) {  //reduce errors
-                                RearTorque = temptorque;
+                                vehicleState->RearTorque = temptorque;
                             }
                         }
                         break;
                         
                     case 0x312:
                         if (message.length == 8) {
-                            MinBattTemp = analyzeMessage.getSignal(message.data.uint64, 44, 9, 0.25, -25, false, littleEndian) * 1.8 + 32;
+                            vehicleState->MinBattTemp = analyzeMessage.getSignal(message.data.uint64, 44, 9, 0.25, -25, false, littleEndian) * 1.8 + 32;
                         }
                         break;
                         /*
@@ -85,8 +99,8 @@ namespace CANServer
                         break;
                         */
                     case 0x241:
-                        BattCoolantRate = analyzeMessage.getSignal(message.data.uint64, 0, 9, 0.1, 0, false, littleEndian);  //ID 241 SB 0 u9 scale .01 LPM
-                        PTCoolantRate = analyzeMessage.getSignal(message.data.uint64, 22, 9, 0.1, 0, false, littleEndian);    //ID 241 SB 22 u9 scale .01 LPM
+                        vehicleState->BattCoolantRate = analyzeMessage.getSignal(message.data.uint64, 0, 9, 0.1, 0, false, littleEndian);  //ID 241 SB 0 u9 scale .01 LPM
+                        vehicleState->PTCoolantRate = analyzeMessage.getSignal(message.data.uint64, 22, 9, 0.1, 0, false, littleEndian);    //ID 241 SB 22 u9 scale .01 LPM
                         break;
                         
                         /*      case 0x261:
@@ -94,33 +108,33 @@ namespace CANServer
                         break;
                         */
                     case 0x252:
-                        MaxRegen =  analyzeMessage.getSignal(message.data.uint64, 0, 16, 0.01, 0, false, littleEndian);
-                        MaxDisChg = analyzeMessage.getSignal(message.data.uint64, 16, 16, 0.01, 0, false, littleEndian);
+                        vehicleState->MaxRegen =  analyzeMessage.getSignal(message.data.uint64, 0, 16, 0.01, 0, false, littleEndian);
+                        vehicleState->MaxDisChg = analyzeMessage.getSignal(message.data.uint64, 16, 16, 0.01, 0, false, littleEndian);
                         break;
                         
                     case 0x257: //VehSpeed = 0;     //ID 257 SB 12 u12 scale .08 offset -40 KPH
                         if (message.length == 8) {
                             ///SpeedUnit = analyzeMessage.getSignal(message.data.uint64, 32, 1, 1, 0, false, littleEndian); //strange this doesn't change with UI setting! Location?
-                            VehSpeed = analyzeMessage.getSignal(message.data.uint64, 12, 12, 0.08, -40, false, littleEndian);
+                            vehicleState->VehSpeed = analyzeMessage.getSignal(message.data.uint64, 12, 12, 0.08, -40, false, littleEndian);
                         }
                         break;
                         
                     case 0x293:    
                         if (message.length == 8) {
-                            SpeedUnit = analyzeMessage.getSignal(message.data.uint64, 13, 1, 1, 0, false, littleEndian); //UI distance setting to toggle speed display units
+                            vehicleState->SpeedUnit = analyzeMessage.getSignal(message.data.uint64, 13, 1, 1, 0, false, littleEndian); //UI distance setting to toggle speed display units
                             
                         }
                         break;
                                         
                     case 0x399: //Blind spots
                         if (message.length == 8) {
-                            BSR = analyzeMessage.getSignal(message.data.uint64, 6, 2, 1, 0, false, littleEndian);
-                            BSL = analyzeMessage.getSignal(message.data.uint64, 4, 2, 1, 0, false, littleEndian);
-                            if (BSR > 2) {  // 3 is active but no warning
-                                BSR = 0;
+                            vehicleState->BSR = analyzeMessage.getSignal(message.data.uint64, 6, 2, 1, 0, false, littleEndian);
+                            vehicleState->BSL = analyzeMessage.getSignal(message.data.uint64, 4, 2, 1, 0, false, littleEndian);
+                            if (vehicleState->BSR > 2) {  // 3 is active but no warning
+                                vehicleState->BSR = 0;
                             }
-                            if (BSL > 2) {
-                                BSL = 0;
+                            if (vehicleState->BSL > 2) {
+                                vehicleState->BSL = 0;
                             }
                         }
                         break;
@@ -160,8 +174,6 @@ namespace CANServer
                 } //end can msg id case
                 
             } //endif can rec msg
-
-#endif
         }
     }
 }

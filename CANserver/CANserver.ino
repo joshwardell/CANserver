@@ -7,7 +7,6 @@
  *   Board: Node32s
  *   (must press IO0 right button to start programming)
  */
-#include "generalCANSignalAnalysis.h" //https://github.com/iChris93/ArduinoLibraryForCANSignalAnalysis
 
 #include "SerialPorts.h"
 #include "AccessPoint.h"
@@ -17,10 +16,7 @@
 #include "SPIFFileSystem.h"
 #include "DisplayState.h"
 #include "WebServer.h"
-
-#define SETTINGSFILE "/settings.json"
-
-generalCANSignalAnalysis analyzeMessage; //initialize library
+#include "PandaUDP.h"
 
 #define LED1 1    //shared with serial tx - try not to use
 #define LED2 2    //onboard blue LED
@@ -28,12 +24,12 @@ generalCANSignalAnalysis analyzeMessage; //initialize library
 #define CFG2 4    //future
 
 
-#define littleEndian true
-#define bigEndian false
-
 // access point network credentials - don't change these
 const char* ssid = "CANserver";
 const char* password = "JWcanServer2020";
+
+// Create Panda UDP server
+PandaUDP panda;
 
 void setup(){
   
@@ -55,6 +51,9 @@ void setup(){
     //Bring up network related components
     CANServer::AccessPoint::setup(ssid, password);
     CANServer::OTA::setup(ssid, password);
+
+    // Begin Panda UDP server
+    panda.begin();
 
     //Bring up CAN bus hardware
     CANServer::CanBus::setup();
