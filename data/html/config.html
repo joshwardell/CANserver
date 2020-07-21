@@ -2,8 +2,42 @@
     <head>
         <title>Config</title>
         <script src="/js/zepto.min.js"></script>
+        
+        <style>
+          input {
+            width: 400px;
+            margin-left:10px;
+          }
+        </style>
     </head>
     <body>
-        Config
+        <H1>Config</H1>
+        <div id="configparams">
+          <form action="/config_save" method="POST">
+            Display 0: <input name="disp0" id="disp0"/><br>
+            Display 1: <input name="disp1" id="disp1"/><br>
+            Display 2: <input name="disp2" id="disp2"/><br>
+            <!-- Display Off: <input name="dispOff" id="dispOff"/><br>-->
+            <button type="submit">Save</button>
+          </form>
+        </div>
+        <script>
+          function initialLoad() {
+            $.get('/config_update', function(response){
+              populateValues(response);
+            });
+          }
+
+          function populateValues(data) {
+            if ("displaysettings" in data) {
+              Object.keys(data.displaysettings).forEach((k, i) => {
+                $foundInput = $('input#' + k);
+                $foundInput.val(data.displaysettings[k]);
+              });
+            }
+          }
+
+          initialLoad();
+        </script>
     </body>
 </html>

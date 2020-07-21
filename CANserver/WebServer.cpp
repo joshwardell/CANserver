@@ -27,8 +27,7 @@ namespace CANServer
 {
     namespace WebServer
     {
-        String _debugTemplateProcessor(const String& var);
-        String _configTemplateProcessor(const String& var);
+        String _displayTemplateProcessor(const String& var);
 
         void setup()
         {
@@ -48,14 +47,49 @@ namespace CANServer
 
             //Configuration related url handling
             server.on("/config", HTTP_GET, [](AsyncWebServerRequest *request){
-                request->send(SPIFFS, "/html/config.html", String(), false, _configTemplateProcessor);
+                request->send(SPIFFS, "/html/config.html");
             });
 
-            server.on("/config_save", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL,
-                    [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
+            server.on("/config_save", HTTP_POST, [](AsyncWebServerRequest * request) {
                 
-                request->send(200);
+                if(request->hasParam("disp0", true))
+                {
+                    AsyncWebParameter* newValue = request->getParam("disp0", true);
+                    CANServer::DisplayState::display0->updateDisplayString(newValue->value().c_str());
+                    CANServer::DisplayState::display0->save();
+                }
+
+                if(request->hasParam("disp1", true))
+                {
+                    AsyncWebParameter* newValue = request->getParam("disp1", true);
+                    CANServer::DisplayState::display1->updateDisplayString(newValue->value().c_str());
+                    CANServer::DisplayState::display1->save();
+                }
+
+                if(request->hasParam("disp2", true))
+                {
+                    AsyncWebParameter* newValue = request->getParam("disp2", true);
+                    CANServer::DisplayState::display2->updateDisplayString(newValue->value().c_str());
+                    CANServer::DisplayState::display2->save();
+                }
+                
+                request->redirect("/config");
             });
+
+            server.on("/config_update", HTTP_GET, [](AsyncWebServerRequest *request) {
+                AsyncJsonResponse * response = new AsyncJsonResponse();
+                JsonVariant& doc = response->getRoot();
+
+                JsonObject displaysettings = doc.createNestedObject("displaysettings");
+                
+                displaysettings["disp0"] = CANServer::DisplayState::display0->displayString();
+                displaysettings["disp1"] = CANServer::DisplayState::display1->displayString();
+                displaysettings["disp2"] = CANServer::DisplayState::display2->displayString();
+                displaysettings["dispOff"] = CANServer::DisplayState::offDisplayString();
+                
+                response->setLength();
+                request->send(response);
+            }); 
 
            
 
@@ -144,13 +178,55 @@ namespace CANServer
             //Display related URL handling
             // set up servers for displays
             server.on("/disp0", HTTP_GET, [](AsyncWebServerRequest *request){
-                request->send(200, "text/plain", CANServer::DisplayState::display0->displayString());
+                if (CANServer::VehicleState::instance()->DisplayOn)
+                {
+                    request->send("text/plain", CANServer::DisplayState::display0->displayStringLength(), [](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+                        if (index > 0) return 0;  //Since we know our data will fit in a single call we just return 0 if the index is >0 to show that we are done
+
+                        size_t dataCoppied = fmin(maxLen, CANServer::DisplayState::display0->displayStringLength());
+                        memcpy(buffer, CANServer::DisplayState::display0->displayString(), dataCoppied);
+                        return dataCoppied;
+
+                        }, _displayTemplateProcessor);
+                }
+                else
+                {
+                    request->send(200, "text/plain", CANServer::DisplayState::offDisplayString());
+                }
             });
             server.on("/disp1", HTTP_GET, [](AsyncWebServerRequest *request){
-                request->send(200, "text/plain", CANServer::DisplayState::display1->displayString());
+                if (CANServer::VehicleState::instance()->DisplayOn)
+                {
+                    request->send("text/plain", CANServer::DisplayState::display1->displayStringLength(), [](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+                        if (index > 0) return 0;  //Since we know our data will fit in a single call we just return 0 if the index is >0 to show that we are done
+
+                        size_t dataCoppied = fmin(maxLen, CANServer::DisplayState::display1->displayStringLength());
+                        memcpy(buffer, CANServer::DisplayState::display1->displayString(), dataCoppied);
+                        return dataCoppied;
+
+                        }, _displayTemplateProcessor);
+                }
+                else
+                {
+                    request->send(200, "text/plain", CANServer::DisplayState::offDisplayString());
+                }
             });
             server.on("/disp2", HTTP_GET, [](AsyncWebServerRequest *request){
-                request->send(200, "text/plain", CANServer::DisplayState::display2->displayString());
+                if (CANServer::VehicleState::instance()->DisplayOn)
+                {
+                    request->send("text/plain", CANServer::DisplayState::display2->displayStringLength(), [](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+                        if (index > 0) return 0;  //Since we know our data will fit in a single call we just return 0 if the index is >0 to show that we are done
+
+                        size_t dataCoppied = fmin(maxLen, CANServer::DisplayState::display2->displayStringLength());
+                        memcpy(buffer, CANServer::DisplayState::display2->displayString(), dataCoppied);
+                        return dataCoppied;
+
+                        }, _displayTemplateProcessor);
+                }
+                else
+                {
+                    request->send(200, "text/plain", CANServer::DisplayState::offDisplayString());
+                }
             });
 
             //receive posts of display buttons, TODO do something with the buttons
@@ -203,8 +279,40 @@ namespace CANServer
             Serial.println("Done");
         }
 
-        String _configTemplateProcessor(const String& var)
+
+#define TEMPLATEMATCHHELPER(name) if (var == #name)\
+                    {\
+                        return String(vehicleStateInstance->name);\
+                    }
+        
+        String _displayTemplateProcessor(const String& var)
         {
+            CANServer::VehicleState *vehicleStateInstance = CANServer::VehicleState::instance();
+
+            TEMPLATEMATCHHELPER(BattVolts)
+            TEMPLATEMATCHHELPER(BattAmps)
+            TEMPLATEMATCHHELPER(BattPower)
+            TEMPLATEMATCHHELPER(RearTorque)
+            TEMPLATEMATCHHELPER(FrontTorque)
+            TEMPLATEMATCHHELPER(MinBattTemp)
+            TEMPLATEMATCHHELPER(BattCoolantRate)
+            TEMPLATEMATCHHELPER(PTCoolantRate)
+            TEMPLATEMATCHHELPER(MaxRegen)
+            TEMPLATEMATCHHELPER(MaxDisChg)
+            TEMPLATEMATCHHELPER(VehSpeed)
+            TEMPLATEMATCHHELPER(SpeedUnit)
+            TEMPLATEMATCHHELPER(v12v261)
+            TEMPLATEMATCHHELPER(BattCoolantTemp)
+            TEMPLATEMATCHHELPER(PTCoolantTemp)
+            TEMPLATEMATCHHELPER(BattRemainKWh)
+            TEMPLATEMATCHHELPER(BattFullKWh)
+            TEMPLATEMATCHHELPER(InvHStemp376)
+            TEMPLATEMATCHHELPER(BSR)
+            TEMPLATEMATCHHELPER(BSL)
+            TEMPLATEMATCHHELPER(DisplayOn)
+
+            Serial.print("Didn't match variable: ");
+            Serial.println(var);
             return String();
         }
     }

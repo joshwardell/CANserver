@@ -37,16 +37,16 @@
                   $newDiv.append($labelSpan);
                   $theValue = $('<span/>').addClass('value').html(data.vehiclestatus[k]);
                   $newDiv.append($theValue);
-                  $input = $('<input id="' + k + '"/>').val(data.vehiclestatus[k]).on('blur', function(e) {
-                    $this = $(this);
-                    if ($(this).data('changed') == true) {
-                      $(this).data('changed', false);
-                      $.post('/debug_save', { "key": $this.attr('id'), "value": $this.val() }, function(response) {
-                        updateLoad();
-                      })
-                    }
-                  }).on('change', function(e) {
-                    $(this).data('changed', true);
+                  $input = $('<input id="' + k + '"/>').val(data.vehiclestatus[k]).on('focus', function(e) {
+                      this.select();
+                    }).keypress(function (e) {
+                      var key = e.which;
+                      if(key == 13) {
+                        $this = $(this);
+                        $.post('/debug_save', { "key": $this.attr('id'), "value": $this.val() }, function(response) {
+                          updateLoad();
+                        })
+                      }
                   });
                   $newDiv.append($input);
                   
@@ -57,7 +57,6 @@
               if ("vehiclestatus" in data) {
                 Object.keys(data.vehiclestatus).forEach((k, i) => {
                   $('div#' + k + ' span.value').html(data.vehiclestatus[k]);
-                  $('div#' + k + ' input').val(data.vehiclestatus[k]);
                 }); 
               }
             }

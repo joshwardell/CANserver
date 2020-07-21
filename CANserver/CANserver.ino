@@ -59,11 +59,15 @@ void setup(){
     //Bring up CAN bus hardware
     CANServer::CanBus::setup();
 
+    CANServer::DisplayState::loadAll();
+
     //Bring up Web server
     CANServer::WebServer::setup();
 
     //Spin up CAN bus and get it ready to process messages
     CANServer::CanBus::startup();
+
+    
 }
 
 void loop(){
@@ -73,8 +77,4 @@ void loop(){
     CANServer::SerialPorts::handle();
     
     CANServer::CanBus::handle();
-
-    CANServer::DisplayState::display0->update();
-    CANServer::DisplayState::display1->update();
-    CANServer::DisplayState::display2->update();
 }
