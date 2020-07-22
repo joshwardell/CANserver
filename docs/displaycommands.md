@@ -27,6 +27,7 @@ Here is the current list of microDisplay command characters:
 - **s** size - font size multiplier for text
 - **c** color - specifies text or graph color (value mode is always white)
   - 65535 white 63488 red 1024 green 31 blue 64800 orange 65504 yellow
+- **o** orientation - 0 for default, 1 to flip (upside-down), 2 and 3 for vertical (only useful for text mode) `[rev >= 20200719]`
 - **a** alphadisplay1 - value to show on alphanumeric LED display 1
   - four characters, or four plus decimal point. Examples: "-123.4" "  20" "10KW" "JERK"
 - **d** alphadisplay2 - value to show on alphanumeric LED display 2
@@ -51,7 +52,7 @@ While the microDisplay defaults to the full-height value display, there are othe
 
 The display will http post the values of the left and right GPIOs to /post0 /post1 etc as "11" "01" etc. This will be followed by r and the revdate (starting with rev 20200621).
 
-Document updated June 21 2020 for 20200621 firmware
+Document updated July 21 2020 for 20200719 firmware
 
 http://www.jwardell.com/microdisplay
 
