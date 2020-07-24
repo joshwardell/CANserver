@@ -4,8 +4,9 @@
 namespace CANServer
 {
     namespace SDCard
-    {
+    {        
         void setup();
+        const bool available();
     }
 }
 
