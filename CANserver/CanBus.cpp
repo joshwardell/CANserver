@@ -2,10 +2,15 @@
 
 #include <Arduino.h>
 #include <esp32_can.h>
+#include <SD.h>
+#include <SPIFFS.h>
+#include <Preferences.h>
+
 
 #include "VehicleState.h"
 #include "generalCANSignalAnalysis.h" //https://github.com/iChris93/ArduinoLibraryForCANSignalAnalysis
 #include "pandaUDP.h"
+#include "SDCard.h"
 
 generalCANSignalAnalysis analyzeMessage; //initialize library
 
@@ -16,17 +21,61 @@ generalCANSignalAnalysis analyzeMessage; //initialize library
 //Make sure the compiler knows this exists in our memory space
 extern PandaUDP panda;
 
+
 namespace CANServer
 {
     namespace CanBus
     {
+        Preferences _prefs;
+        SDFile _rawCanLogFile;
+
+        bool logRawCan = false;
+
+        void loadSettings()
+        {
+            logRawCan = _prefs.getBool("lograw", false);
+        }
+
+        void saveSettings()
+        {
+             _prefs.putBool("lograw", logRawCan);
+        }
+
         void setup()
         {
             Serial.println("Setting up Can-Bus...");
 
             CAN0.begin(BITRATE);
 
+            _prefs.begin("CanBus");
+            
+            loadSettings();
+
             Serial.println("Done");
+        }
+
+        void openRawLog()
+        {
+            if (CANServer::SDCard::available())
+            {
+                if (!_rawCanLogFile)
+                {
+                    _rawCanLogFile = SD.open("/" RAWCANLOGNAME, FILE_APPEND);
+                    Serial.println("Logging raw messages to SD");
+                }
+            }
+            else
+            {
+                _rawCanLogFile.close();
+            }
+        }
+
+        void closeRawLog()
+        {
+            if (CANServer::SDCard::available() && _rawCanLogFile)
+            {
+                _rawCanLogFile.close();
+            }
         }
 
         void startup()
@@ -43,6 +92,26 @@ namespace CANServer
 
                 // Send to UDP server if a client is connected.
                 panda.handleMessage(message);
+
+                if (logRawCan && _rawCanLogFile)
+                {
+                    //Log this message to the log file
+
+                    //(1551774790.942758) can1 7A8 [8] F4 DC D1 83 0E 02 00 00
+                    _rawCanLogFile.print("(0000000.0000) can1 ");
+                    _rawCanLogFile.print(message.id, HEX);
+                    _rawCanLogFile.print(" [");
+                    _rawCanLogFile.print(message.length, DEC);
+                    _rawCanLogFile.print("] ");
+                    for (int i = 0; i < message.length; i++) 
+                    {
+                        if (i > 0) { _rawCanLogFile.print(" "); }
+                        _rawCanLogFile.print(message.data.byte[i], HEX);
+                    
+                    }
+                    _rawCanLogFile.println();
+                    _rawCanLogFile.flush();   
+                }
 
                 /*    Serial.print(message.id, HEX);  ///debug display RX message
                 if (message.extended) Serial.print(" X ");
@@ -73,6 +142,8 @@ namespace CANServer
                             if ((tempvolts > 290) && (tempvolts < 420)) { //avoid some bad messages
                                 vehicleState->BattVolts = tempvolts;
                                 vehicleState->BattAmps = analyzeMessage.getSignal(message.data.uint64, 16, 16, -0.1, 0, true, littleEndian); //signed 15, mask off sign
+
+                                //Power is a synthisized value.  Calculate it
                                 vehicleState->BattPower = vehicleState->BattVolts * vehicleState->BattAmps / 100;
                             }
                         }
@@ -121,8 +192,7 @@ namespace CANServer
                         
                     case 0x293:    
                         if (message.length == 8) {
-                            vehicleState->SpeedUnit = analyzeMessage.getSignal(message.data.uint64, 13, 1, 1, 0, false, littleEndian); //UI distance setting to toggle speed display units
-                            
+                            vehicleState->SpeedUnit = analyzeMessage.getSignal(message.data.uint64, 13, 1, 1, 0, false, littleEndian);      //UI distance setting to toggle speed display units
                         }
                         break;
                                         
