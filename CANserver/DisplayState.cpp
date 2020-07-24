@@ -53,17 +53,17 @@ void CANServer::DisplayState::load()
     {
         case 0:
         {
-            _displayString = "%BattPower%vWK  Bu%BattPower%b0m120r";
+            _displayString = "65535c%BattPower%vWK  Bu%BattPower_Scaled_Bar%b0m120r";
             break;
         }
         case 1:
         {
-            _displayString = "%RearTorque%vMNu%RearTorque%b0m120r";
+            _displayString = "65535c%RearTorque%vMNu%RearTorque_Scaled_Bar%b0m120r";
             break;
         }
         case 2:
         {
-            _displayString = "%VehSpeed%vHPKu%BattPower%b0m120r";
+            _displayString = "65535c%VehSpeed%v%SpeedUnit%u%BattPower_Scaled_Bar%b0m120r";
             break;
         }
     }
@@ -78,50 +78,6 @@ void CANServer::DisplayState::save()
         file.close();
     }
 }
-/*{
-    CANServer::VehicleState *vehicleState = CANServer::VehicleState::instance();
-    if (vehicleState->DisplayOn)
-    {
-        //Temporary code to return functionality to the existing way
-        switch (_displayId)
-        {
-            case 0:
-            {
-                _displayString = (String("%BattPower%vWK  Bu") + String(int(0.008 * vehicleState->BattPower)) + "b0m120r");
-                break;
-            }
-            case 1:
-            {
-                _displayString = (String("%RearTorque%vMNu") + String(int(0.006*vehicleState->RearTorque)) + "b0m120r");
-                break;
-            }
-            case 2:
-            {
-                if (vehicleState->BSR != 0)   //Blind spot arrows over speed display
-                {
-                    _displayString = "2v63488c6m120r";
-                }
-                else if (vehicleState->BSL != 0)
-                {
-                    _displayString = "1v63488c6m120r";
-                } else {
-                    //if (SpeedUnit == 1) { //Convert to MPH
-                    //    disp2str = String(int(0.621371 * VehSpeed)) + "vHPMu" + String(int(0.008 * BattPower)) + "b0m120r";
-                    //} else {   //speedunit = 1 for kph
-                    _displayString = (String(int(vehicleState->VehSpeed)) + "vHPKu" + String(int(0.008 * vehicleState->BattPower)) + "b0m120r");
-                    //}
-                } //if BSR BSL
-
-                break;
-            }
-        }
-    }
-    else
-    {
-        //When the display is off we just set it to be text mode black space refresh 1sec
-        _displayString = offDisplayString();
-    }
-}*/
 
 const char* CANServer::DisplayState::displayString() const 
 {

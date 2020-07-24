@@ -21,7 +21,7 @@ namespace CANServer
         const uint displayStringLength() const;
         void updateDisplayString(const char* newValue);
 
-        static inline const char* offDisplayString() { return "1m t1000r"; }
+        static inline const char* offDisplayString() { return "1m t0b1000r"; }
 
         static void loadAll();
 

@@ -31,7 +31,7 @@ const char* password = "JWcanServer2020";
 // Create Panda UDP server
 PandaUDP panda;
 
-void setup(){
+void setup() {
   
     //pinMode(LED1,OUTPUT); // LED1 shares TXpin with serial
     pinMode(LED2,OUTPUT);
@@ -43,6 +43,11 @@ void setup(){
     }
     
     CANServer::SerialPorts::setup();
+
+    Serial.println();
+    Serial.println();
+    Serial.println();
+    Serial.println(__DATE__ " " __TIME__);
     
     //Bring up storage devices    
     CANServer::SPIFFileSystem::setup();
@@ -65,15 +70,15 @@ void setup(){
 
     //Spin up CAN bus and get it ready to process messages
     CANServer::CanBus::startup();
-
-    
 }
 
-void loop(){
+
+
+void loop()
+{
     //Deal with any pending OTA related work
     CANServer::OTA::handle();
-    
-    CANServer::SerialPorts::handle();
-    
+    CANServer::SerialPorts::handle();   
+
     CANServer::CanBus::handle();
 }
