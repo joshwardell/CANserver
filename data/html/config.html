@@ -4,7 +4,7 @@
         <script src="/js/zepto.min.js"></script>
         
         <style>
-          input {
+          input:not([type='checkbox']) {
             width: 400px;
             margin-left:10px;
           }
@@ -12,12 +12,14 @@
     </head>
     <body>
         <H1>Config</H1>
+        <a href="/">Home</a><br><br>
         <div id="configparams">
           <form action="/config_save" method="POST">
             Display 0: <input name="disp0" id="disp0"/><br>
             Display 1: <input name="disp1" id="disp1"/><br>
             Display 2: <input name="disp2" id="disp2"/><br>
             <!-- Display Off: <input name="dispOff" id="dispOff"/><br>-->
+            <br>
             <button type="submit">Save</button>
           </form>
         </div>
@@ -33,6 +35,17 @@
               Object.keys(data.displaysettings).forEach((k, i) => {
                 $foundInput = $('input#' + k);
                 $foundInput.val(data.displaysettings[k]);
+              });
+            }
+            
+            if ("configsettings" in data) {
+              Object.keys(data.configsettings).forEach((k, i) => {
+                $foundInput = $('input#' + k);
+                if ($foundInput.attr('type') == 'checkbox') {
+                  $foundInput.prop('checked', data.configsettings[k]);
+                } else {
+                  $foundInput.val(data.configsettings[k]);
+                }
               });
             }
           }

@@ -8,10 +8,19 @@
             width: 50px;
             margin-left:10px;
           }
+          .item {
+            display: inline-block;
+            width:150px;
+          }
+          .value {
+            display: inline-block;
+            width:50px;
+          }
         </style>
     </head>
     <body>
         <H1>Debug</H1>
+        <a href="/">Home</a><br><br>
         <div id="debugparams">Loading...</div>
         <script>
           function initialLoad() {
@@ -45,7 +54,8 @@
                         $this = $(this);
                         $.post('/debug_save', { "key": $this.attr('id'), "value": $this.val() }, function(response) {
                           updateLoad();
-                        })
+                        });
+                        this.select();
                       }
                   });
                   $newDiv.append($input);

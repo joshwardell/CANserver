@@ -1,0 +1,59 @@
+<html>
+    <head>
+        <title>Logs</title>
+        <script src="/js/zepto.min.js"></script>
+        <style>
+          label {
+            padding-left: 10px;
+          }
+          a.download, a.delete {
+            padding-left:10px;
+          }
+        </style>
+    </head>
+    <body>
+        <H1>Logs</H1>
+        <a href="/">Home</a><br><br>
+        <form action="/logs_save" method="POST">
+          <div id="logs">
+          Loading...
+          </div>
+          <br>
+          <button type="submit">Save</button>
+        </form>
+        <script>
+          function updateLoad() {
+            $.get('/logs_update', function(response){
+              populateValues(response);
+            });
+          }
+            
+          function populateValues(data) {
+            $('#logs').html('');
+            Object.keys(data).forEach((k, i) => {
+              console.log(k);
+              $newDiv = $('<div id="' + k + '"/>');
+              $labelSpan = $('<span/>').addClass("item").html(k + ":");
+              $newDiv.append($labelSpan);
+              
+              loginfo = data[k];
+              $input = $('<input type="checkbox" name="' + k + '" id="' + k + '"/>').prop('checked', loginfo.enabled);
+              $newDiv.append($input);
+              
+              $fileSize = $('<label>Size:</label>').append($('<span class="size"/>').html(loginfo.filesize));
+              $newDiv.append($fileSize); 
+              
+              $downloadLink = $('<a class="download" href="/log_download?id=' + k + '">Download</a>');
+              $newDiv.append($downloadLink); 
+              
+              $deleteLink =  $('<a class="delete" href="/log_delete?id=' + k + '">Delete</a>');
+              $newDiv.append($deleteLink); 
+              
+              $('#logs').append($newDiv);
+            });
+          }
+          
+          updateLoad();
+        </script>
+    </body>
+</html>
