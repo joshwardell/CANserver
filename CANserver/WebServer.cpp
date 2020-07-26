@@ -407,8 +407,7 @@ namespace CANServer
 
             //Static content related URL handling
             server.on("/js/zepto.min.js", HTTP_GET,  [](AsyncWebServerRequest *request){
-                AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/js/zepto.min.js.gz", "text/javascript");
-                response->addHeader("Content-Encoding", "gzip");
+                AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/js/zepto.min.js", "application/javascript");
                 response->addHeader("Cache-Control", "max-age=600");
                 request->send(response);
             });

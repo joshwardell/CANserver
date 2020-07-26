@@ -50,6 +50,10 @@ namespace CANServer
             _prefs.begin("CanBus");
             
             loadSettings();
+            if (logRawCan) 
+            {
+                openRawLog();
+            }
 
             Serial.println("Done");
         }
@@ -61,7 +65,15 @@ namespace CANServer
                 if (!_rawCanLogFile)
                 {
                     _rawCanLogFile = SD.open("/" RAWCANLOGNAME, FILE_APPEND);
-                    Serial.println("Logging raw messages to SD");
+
+                    if (_rawCanLogFile)
+                    {
+                        Serial.println("Logging raw messages to SD");
+                    }
+                    else
+                    {
+                        Serial.println("Unable to open raw log file");
+                    }
                 }
             }
             else
@@ -85,11 +97,31 @@ namespace CANServer
             //  CAN0.setCallback(0, gotHundred); //callback on that first special filter
         }
 
+void printFrame(CAN_FRAME &frame)
+{
+	// Print message
+	Serial.print("ID: ");
+	Serial.println(frame.id,HEX);
+	Serial.print("Ext: ");
+	if(frame.extended) {
+		Serial.println("Y");
+	} else {
+		Serial.println("N");
+	}
+	Serial.print("Len: ");
+	Serial.println(frame.length,DEC);
+	for(int i = 0;i < frame.length; i++) {
+		Serial.print(frame.data.uint8[i],HEX);
+		Serial.print(" ");
+	}
+	Serial.println();
+}
+
         void handle()
         {
             CAN_FRAME message;
             if (CAN0.read(message)) {
-
+                //printFrame(message);
                 // Send to UDP server if a client is connected.
                 panda.handleMessage(message);
 
