@@ -10,6 +10,8 @@ While the display itself is feature complete, the smarts in the server are just 
 If you have just one display and server, they will connect to each other out of the box. 
 The most basic setup with one display is powered by a small USB adapter on its left. Note the correct orientation with a red dot on the back. Plug the USB cable into any standard USB port, hide the cable if you wish, and you are done.
 
+[Watch the installation and setup video](https://www.youtube.com/watch?v=8xQ1g1XpqIc)
+
 ![Single Display](img/singledisplay.jpg)
 
 Initially there are also "left" and "right" boards that connect to the sides of the display and offer multiple options depending on how they are built. They connect to the bargraph display, or contain LEDs or buttons. Plug these in as desired before plugging power. More detail on these boards are in the technical section below.
@@ -39,7 +41,7 @@ In addition to the main data signal mode, the microDisplay supports text, scroll
 
 ![LED bargraph](img/bargraph.jpg)
 
-Though I may design a dedicated board for this in the future, this starts with an Adafruit bargraph I2C backpack. I paint the front black, add a black filter sheet, and include a left or right board to the back so it can connect to the microDisplay. You are welcome to build, customize, and add your own! Each display supports one bargraph.
+Though I may design a dedicated board for this in the future, this starts with an [Adafruit bargraph I2C backpack](https://www.adafruit.com/product/1721). I paint the front black, add a black filter sheet, and include a left or right board to the back so it can connect to the microDisplay. You are welcome to build, customize, and add your own! Each display supports one bargraph.
 
 
 **Right board**
@@ -53,11 +55,14 @@ This board plugs into the right of the display. It has an I2C connector for a ba
 
 ![Left Board](img/left.jpg)
 
-This board plugs into the left of the display. It has an I2C connector for a bargraph. It may also have an LED or a 6mm pushbutton depending on your custom order, or you may add your own. These are driven by the 3.3v left GPIO from the display. You can have the LED on the board so it shines next to the display, or wire a remote LED to hide elsewhere. This board also has a USB connector to be used instead of the USB-only power connector.
+This board plugs into the left of the display. It has an I2C connector for a bargraph. It may also have an LED or a 6mm pushbutton depending on your custom order, or you may add your own. These are driven by the 3.3v left GPIO from the display. You can have the LED on the board so it shines next to the display, or wire a remote LED to hide elsewhere. This board also has a USB connector to be used instead of the USB-only power connector. I2C address 70
 
 **Alphanumeric LED**
 
-Coming soon or add your own, support for two BTTF-style LED displays, based on the Adafruit quad alphanumeric I2C backpack. (These won't fit in the 16mm height of the Tesla air vent)
+Coming soon or add your own, support for two BTTF-style LED displays, based on the [Adafruit quad alphanumeric I2C backpack](https://www.adafruit.com/product/1911). (These won't fit in the 16mm height of the Tesla air vent) I2C address 72 & 73
 
+**12v Accessory Relay**
 
-Jun 7, 2020
+Coming soon, a right board with added 3A 12V relay so you can program it to turn off accessories like amps and radar detectors whenever you want (like when you exit the car). Activated by the right IO instead of the LED.
+
+Jul 27, 2020
