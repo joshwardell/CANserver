@@ -53,17 +53,17 @@ void CANServer::DisplayState::load()
     {
         case 0:
         {
-            _displayString = "65535c%BattPower%vWK  Bu%BattPower_Scaled_Bar%b0m120r";
+            _displayString = "65535c${BattPower}vWK  Bu${BattPower_Scaled_Bar}b0m120r";
             break;
         }
         case 1:
         {
-            _displayString = "65535c%RearTorque%vMNu%RearTorque_Scaled_Bar%b0m120r";
+            _displayString = "65535c${RearTorque}vMNu${RearTorque_Scaled_Bar}b0m120r";
             break;
         }
         case 2:
         {
-            _displayString = "65535c%VehSpeed%v%SpeedUnit%u%BattPower_Scaled_Bar%b0m120r";
+            _displayString = "$if BSR {{2v63488c6m120r}} $elseif BSL {{1v63488c6m120r}} $else {{65535c${VehSpeed}v${SpeedUnitString}u${BattPower_Scaled_Bar}b0m120r}}";
             break;
         }
     }

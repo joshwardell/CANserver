@@ -9,7 +9,7 @@
  */
 
 #include "SerialPorts.h"
-#include "AccessPoint.h"
+#include "Network.h"
 #include "OTA.h"
 #include "SDCard.h"
 #include "CanBus.h"
@@ -20,27 +20,14 @@
 
 #define LED1 1    //shared with serial tx - try not to use
 #define LED2 2    //onboard blue LED
-#define CFG1 15   //jumper to toggle second CANserver
 #define CFG2 4    //future
-
-
-// access point network credentials - don't change these
-const char* ssid = "CANserver";
-const char* password = "JWcanServer2020";
 
 // Create Panda UDP server
 PandaUDP panda;
 
 void setup() {
-  
-    //pinMode(LED1,OUTPUT); // LED1 shares TXpin with serial
     pinMode(LED2,OUTPUT);
-    pinMode(CFG1,INPUT_PULLUP);
     pinMode(CFG2,INPUT_PULLUP);
-    
-    if (digitalRead(CFG1) == 0) { //If jumpered, server 2
-        ssid = "CANserver2";
-    }
     
     CANServer::SerialPorts::setup();
 
@@ -54,8 +41,8 @@ void setup() {
     CANServer::SDCard::setup();
 
     //Bring up network related components
-    CANServer::AccessPoint::setup(ssid, password);
-    CANServer::OTA::setup(ssid, password);
+    CANServer::Network::setup();
+    CANServer::OTA::setup();
 
     // Begin Panda UDP server
     panda.begin();
@@ -73,10 +60,11 @@ void setup() {
 }
 
 
-
+unsigned long previousMillis = 0;
 void loop()
 {
     //Deal with any pending OTA related work
+    CANServer::Network::handle();
     CANServer::OTA::handle();
     CANServer::SerialPorts::handle();   
 

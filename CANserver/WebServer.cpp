@@ -19,6 +19,9 @@
 #include "VehicleState.h"
 #include "SDCard.h"
 #include "CanBus.h"
+#include "Network.h"
+
+#include "ginger.h"
 
 #define ASSIGN_HELPER(keyname) if (keyParam->value() == #keyname)\
                     {\
@@ -31,7 +34,31 @@ namespace CANServer
 {
     namespace WebServer
     {
-        String _displayTemplateProcessor(const String& var);
+        void _populateTemplateVaraibles(ginger::temple *vars);
+
+        void _renderDisplay(AsyncWebServerRequest *request, DisplayState* display)
+        {
+            if (CANServer::VehicleState::instance()->DisplayOn)
+            {
+                ginger::temple t;
+                CANServer::WebServer::_populateTemplateVaraibles(&t);
+                
+                try {
+                    std::stringstream ss;
+                    ginger::parse(display->displayString(), t, ginger::from_ios(ss));
+
+                    request->send(200, "text/plain", ss.str().c_str());
+
+                } catch (ginger::parse_error& error) {
+                    //Serial.println(error.long_error().c_str());
+                    request->send(200, "text/plain", "1m2sDISPLAY  ERROR  t");
+                }
+            }
+            else
+            {
+                request->send(200, "text/plain", CANServer::DisplayState::offDisplayString());
+            }
+        }
 
         void setup()
         {
@@ -47,7 +74,7 @@ namespace CANServer
             });
 
 
-            //Configuration related url handling
+            //Display configuration related url handling
             server.on("/config", HTTP_GET, [](AsyncWebServerRequest *request){
                 request->send(SPIFFS, "/html/config.html");
             });
@@ -88,6 +115,39 @@ namespace CANServer
                 displaysettings["disp1"] = CANServer::DisplayState::display1->displayString();
                 displaysettings["disp2"] = CANServer::DisplayState::display2->displayString();
                 displaysettings["dispOff"] = CANServer::DisplayState::offDisplayString();
+                
+                response->setLength();
+                request->send(response);
+            }); 
+
+            //Network configuration related url handling
+            server.on("/network", HTTP_GET, [](AsyncWebServerRequest *request){
+                request->send(SPIFFS, "/html/network.html");
+            });
+
+            server.on("/network_save", HTTP_POST, [](AsyncWebServerRequest * request) {
+                
+                if(request->hasParam("ssid", true))
+                {
+                    AsyncWebParameter* newValue = request->getParam("ssid", true);
+                    CANServer::Network::setExternalWifiSSID(newValue->value());
+                }
+                if(request->hasParam("password", true))
+                {
+                    AsyncWebParameter* newValue = request->getParam("password", true);
+                    CANServer::Network::setExternalWifiPassword(newValue->value());
+                }
+
+                request->redirect("/network");
+            });
+
+            server.on("/network_update", HTTP_GET, [](AsyncWebServerRequest *request) {
+                AsyncJsonResponse * response = new AsyncJsonResponse();
+                JsonVariant& doc = response->getRoot();
+
+                JsonObject networksettings = doc.createNestedObject("networksettings");
+                
+                networksettings["ssid"] = CANServer::Network::getExternalWifiSSID();                
                 
                 response->setLength();
                 request->send(response);
@@ -156,8 +216,6 @@ namespace CANServer
                 {
                     request->send(404);
                 }
-                
-                    //AsyncWebParameter* p = request->getParam("download");
             });
 
             server.on("/debug_update", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -313,61 +371,27 @@ namespace CANServer
                 }
 
                 request->redirect("/logs");
-            });            
+            });    
+
+
+
+            server.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request){
+                ESP.restart();
+            });        
 
 
             //Display related URL handling
-            // set up servers for displays
+            // set up servers for displays            
             server.on("/disp0", HTTP_GET, [](AsyncWebServerRequest *request){
-                if (CANServer::VehicleState::instance()->DisplayOn)
-                {
-                    request->send("text/plain", CANServer::DisplayState::display0->displayStringLength(), [](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-                        if (index > 0) return 0;  //Since we know our data will fit in a single call we just return 0 if the index is >0 to show that we are done
-
-                        size_t dataCoppied = fmin(maxLen, CANServer::DisplayState::display0->displayStringLength());
-                        memcpy(buffer, CANServer::DisplayState::display0->displayString(), dataCoppied);
-                        return dataCoppied;
-
-                        }, _displayTemplateProcessor);
-                }
-                else
-                {
-                    request->send(200, "text/plain", CANServer::DisplayState::offDisplayString());
-                }
+                _renderDisplay(request, CANServer::DisplayState::display0);
             });
+
             server.on("/disp1", HTTP_GET, [](AsyncWebServerRequest *request){
-                if (CANServer::VehicleState::instance()->DisplayOn)
-                {
-                    request->send("text/plain", CANServer::DisplayState::display1->displayStringLength(), [](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-                        if (index > 0) return 0;  //Since we know our data will fit in a single call we just return 0 if the index is >0 to show that we are done
-
-                        size_t dataCoppied = fmin(maxLen, CANServer::DisplayState::display1->displayStringLength());
-                        memcpy(buffer, CANServer::DisplayState::display1->displayString(), dataCoppied);
-                        return dataCoppied;
-
-                        }, _displayTemplateProcessor);
-                }
-                else
-                {
-                    request->send(200, "text/plain", CANServer::DisplayState::offDisplayString());
-                }
+                _renderDisplay(request, CANServer::DisplayState::display1);
             });
+
             server.on("/disp2", HTTP_GET, [](AsyncWebServerRequest *request){
-                if (CANServer::VehicleState::instance()->DisplayOn)
-                {
-                    request->send("text/plain", CANServer::DisplayState::display2->displayStringLength(), [](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-                        if (index > 0) return 0;  //Since we know our data will fit in a single call we just return 0 if the index is >0 to show that we are done
-
-                        size_t dataCoppied = fmin(maxLen, CANServer::DisplayState::display2->displayStringLength());
-                        memcpy(buffer, CANServer::DisplayState::display2->displayString(), dataCoppied);
-                        return dataCoppied;
-
-                        }, _displayTemplateProcessor);
-                }
-                else
-                {
-                    request->send(200, "text/plain", CANServer::DisplayState::offDisplayString());
-                }
+                _renderDisplay(request, CANServer::DisplayState::display2);
             });
 
             //receive posts of display buttons, TODO do something with the buttons
@@ -419,80 +443,60 @@ namespace CANServer
             Serial.println("Done");
         }
 
-
-#define TEMPLATEMATCHHELPER(name) if (var == #name)\
-                    {\
-                        return String(vehicleStateInstance->name);\
-                    }
-        
-        String _displayTemplateProcessor(const String& var)
+#define POPULATEHELPER(name) {\
+(*vars)[#name] = vehicleStateInstance->name;\
+}
+        void _populateTemplateVaraibles(ginger::temple *vars)
         {
             CANServer::VehicleState *vehicleStateInstance = CANServer::VehicleState::instance();
-
-            TEMPLATEMATCHHELPER(BattVolts)
-            TEMPLATEMATCHHELPER(BattAmps)
-            TEMPLATEMATCHHELPER(BattPower)
-            TEMPLATEMATCHHELPER(RearTorque)
-            TEMPLATEMATCHHELPER(FrontTorque)
-            TEMPLATEMATCHHELPER(MinBattTemp)
-            TEMPLATEMATCHHELPER(BattCoolantRate)
-            TEMPLATEMATCHHELPER(PTCoolantRate)
-            TEMPLATEMATCHHELPER(MaxRegen)
-            TEMPLATEMATCHHELPER(MaxDisChg)
+            POPULATEHELPER(BattPower);
+            POPULATEHELPER(BattVolts)
+            POPULATEHELPER(BattAmps)
+            POPULATEHELPER(BattPower)
+            POPULATEHELPER(RearTorque)
+            POPULATEHELPER(FrontTorque)
+            POPULATEHELPER(MinBattTemp)
+            POPULATEHELPER(BattCoolantRate)
+            POPULATEHELPER(PTCoolantRate)
+            POPULATEHELPER(MaxRegen)
+            POPULATEHELPER(MaxDisChg)
             
-            if (var == "VehSpeed")
+            if (vehicleStateInstance->SpeedUnit == 1) 
+            { 
+                //MPH
+                (*vars)["VehSpeed"] = int(0.621371 * vehicleStateInstance->VehSpeed);
+            } 
+            else 
             {
-                if (vehicleStateInstance->SpeedUnit == 1) 
-                { 
-                    //MPH
-                    return String(int(0.621371 * vehicleStateInstance->VehSpeed));
-                } 
-                else 
-                {
-                    //KMH
-                    return String(vehicleStateInstance->VehSpeed);
-                }
+                //KMH
+                (*vars)["VehSpeed"] = vehicleStateInstance->VehSpeed;
             }
 
-            if (var == "SpeedUnit")
+            if (vehicleStateInstance->SpeedUnit == 1) 
+            { 
+                //MPH
+                (*vars)["SpeedUnitString"] = "HPM";
+            } 
+            else 
             {
-                if (vehicleStateInstance->SpeedUnit == 1) 
-                { 
-                    //MPH
-                    return "HPM";
-                } 
-                else 
-                {
-                    //KMH
-                    return "HMK";
-                }
+                //KPH
+                (*vars)["SpeedUnitString"] = "HPK";
             }
 
-            TEMPLATEMATCHHELPER(SpeedUnit)
-            TEMPLATEMATCHHELPER(v12v261)
-            TEMPLATEMATCHHELPER(BattCoolantTemp)
-            TEMPLATEMATCHHELPER(PTCoolantTemp)
-            TEMPLATEMATCHHELPER(BattRemainKWh)
-            TEMPLATEMATCHHELPER(BattFullKWh)
-            TEMPLATEMATCHHELPER(InvHStemp376)
-            TEMPLATEMATCHHELPER(BSR)
-            TEMPLATEMATCHHELPER(BSL)
-            TEMPLATEMATCHHELPER(DisplayOn)
+            POPULATEHELPER(SpeedUnit)
+            POPULATEHELPER(v12v261)
+            POPULATEHELPER(BattCoolantTemp)
+            POPULATEHELPER(PTCoolantTemp)
+            POPULATEHELPER(BattRemainKWh)
+            POPULATEHELPER(BattFullKWh)
+            POPULATEHELPER(InvHStemp376)
+            POPULATEHELPER(BSR)
+            POPULATEHELPER(BSL)
+            POPULATEHELPER(DisplayOn)
 
             //Some scaled vars that are used by the default bargraph display
-            if (var == "BattPower_Scaled_Bar")
-            {
-                return String(int(0.008 * vehicleStateInstance->BattPower));
-            }
-
-            if (var == "RearTorque_Scaled_Bar")
-            {
-                return String(int(0.006 * vehicleStateInstance->RearTorque));
-            }
-
-            Serial.print("Didn't match variable: ");
-            Serial.println(var);
-            return String();
+            (*vars)["BattPower_Scaled_Bar"] = int(0.008 * vehicleStateInstance->BattPower);
+            (*vars)["RearTorque_Scaled_Bar"] = int(0.006 * vehicleStateInstance->RearTorque);
         }
     }
 }

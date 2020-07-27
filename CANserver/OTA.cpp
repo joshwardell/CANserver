@@ -7,17 +7,20 @@
 
 extern AsyncWebServer server;
 
+const char* otaHostname = "CANserver";
+const char* otaPassword = "JWcanServer2020";
+
 namespace CANServer
 {
     namespace OTA
     {
-        void setup(const char* hostname, const char* password)
+        void setup()
         {
             Serial.println("Setting up OTA Updates...");
 
             // set up ArduinoOTA
-            ArduinoOTA.setHostname(hostname); // Same as SSID
-            ArduinoOTA.setPassword(password);
+            ArduinoOTA.setHostname(otaHostname);
+            ArduinoOTA.setPassword(otaPassword);
             
             ArduinoOTA.onStart([]() {
                 String type;

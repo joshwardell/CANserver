@@ -5,7 +5,7 @@ namespace CANServer
 {
     namespace OTA
     {
-        void setup(const char* hostname, const char* password);
+        void setup();
         void handle();
     }
 }

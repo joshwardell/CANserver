@@ -5,39 +5,31 @@
         <link rel="icon" href="data:,">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         
-        <style>
-          input:not([type='checkbox']) {
-            width: 400px;
-            margin-left:10px;
-          }
-        </style>
     </head>
     <body>
-        <H1>Display Config</H1>
+        <H1>Network Config</H1>
         <a href="/">Home</a><br><br>
-        <div id="configparams">
+        <div id="networkparams">
           <div id="loading">Loading...</div>
-          <form action="/config_save" method="POST" id="settingsform" style="display:none;">
-            Display 0: <input name="disp0" id="disp0"/><br>
-            Display 1: <input name="disp1" id="disp1"/><br>
-            Display 2: <input name="disp2" id="disp2"/><br>
-            <!-- Display Off: <input name="dispOff" id="dispOff"/><br>-->
+          <form action="/network_save" method="POST" id="settingsform" style="display:none;">
+            External SSID: <input name="ssid" id="ssid"/><br>
+            External Password: <input name="password" id="password"/><br>
             <br>
             <button type="submit">Save</button>
           </form>
         </div>
         <script>
           function initialLoad() {
-            $.get('/config_update', function(response){
+            $.get('/network_update', function(response){
               populateValues(response);
             });
           }
 
           function populateValues(data) {
-            if ("displaysettings" in data) {
-              Object.keys(data.displaysettings).forEach((k, i) => {
+            if ("networksettings" in data) {
+              Object.keys(data.networksettings).forEach((k, i) => {
                 $foundInput = $('input#' + k);
-                $foundInput.val(data.displaysettings[k]);
+                $foundInput.val(data.networksettings[k]);
               });
               
               $('div#loading').hide();
