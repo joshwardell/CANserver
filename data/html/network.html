@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Config</title>
+        <title>Network Config</title>
         <script src="/js/zepto.min.js"></script>
         <link rel="icon" href="data:,">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,7 +13,7 @@
           <div id="loading">Loading...</div>
           <form action="/network_save" method="POST" id="settingsform" style="display:none;">
             External SSID: <input name="ssid" id="ssid"/><br>
-            External Password: <input name="password" id="password"/><br>
+            External Password: <input name="password" id="password"/> *saved password isn't displayed (if you wish to change it enter a new one and hit save)<br>
             <br>
             <button type="submit">Save</button>
           </form>

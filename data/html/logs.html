@@ -25,38 +25,46 @@
           <button type="submit">Save</button>
         </form>
         <script>
-          function updateLoad() {
+          function initialLoad() {
             $.get('/logs_update', function(response){
-              populateValues(response);
-            });
-          }
-            
-          function populateValues(data) {
-            $('#logs').html('');
-            Object.keys(data).forEach((k, i) => {
-              console.log(k);
-              $newDiv = $('<div id="' + k + '"/>');
-              $labelSpan = $('<span/>').addClass("item").html(k + ":");
-              $newDiv.append($labelSpan);
-              
-              loginfo = data[k];
-              $input = $('<input type="checkbox" name="' + k + '" id="' + k + '"/>').prop('checked', loginfo.enabled);
-              $newDiv.append($input);
-              
-              $fileSize = $('<label>Size:</label>').append($('<span class="size"/>').html(loginfo.filesize));
-              $newDiv.append($fileSize); 
-              
-              $downloadLink = $('<a class="download" href="/log_download?id=' + k + '">Download</a>');
-              $newDiv.append($downloadLink); 
-              
-              $deleteLink =  $('<a class="delete" href="/log_delete?id=' + k + '">Delete</a>');
-              $newDiv.append($deleteLink); 
-              
-              $('#logs').append($newDiv);
+              $('#logs').html('');
+              Object.keys(response).forEach((k, i) => {
+                $newDiv = $('<div id="' + k + '"/>');
+                $labelSpan = $('<span/>').addClass("item").html(k + ":");
+                $newDiv.append($labelSpan);
+                
+                loginfo = response[k];
+                $input = $('<input type="checkbox" name="' + k + '" id="' + k + '"/>').prop('checked', loginfo.enabled);
+                $newDiv.append($input);
+                
+                $fileSize = $('<label>Size:</label>').append($('<span class="size"/>').html(loginfo.filesize));
+                $newDiv.append($fileSize); 
+                
+                $downloadLink = $('<a class="download" href="/log_download?id=' + k + '">Download</a>');
+                $newDiv.append($downloadLink); 
+                
+                $deleteLink =  $('<a class="delete" href="/log_delete?id=' + k + '">Delete</a>');
+                $newDiv.append($deleteLink); 
+                
+                $('#logs').append($newDiv);
+              });
             });
           }
           
-          updateLoad();
+          function updateLoad()
+          {
+            $.get('/logs_update', function(response){
+              Object.keys(response).forEach((k, i) => {
+                console.log(k);
+                loginfo = response[k];
+                
+                $('div#' + k + ' span.size').html(loginfo.filesize);
+              });
+            });
+          }
+          
+          initialLoad();
+          setInterval('updateLoad()', 2000);
         </script>
     </body>
 </html>

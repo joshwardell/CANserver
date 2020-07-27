@@ -267,14 +267,17 @@ namespace CANServer
                     JsonObject rawlogdetails = doc.createNestedObject("rawlog");                    
                     size_t fileSize = 0;
                     
-                    SDFile rawlog = SD.open("/" RAWCANLOGNAME, FILE_READ);
-                    if (rawlog)
+                    rawlogdetails["enabled"] = CANServer::CanBus::logRawCan;
+                    if (SD.exists("/" RAWCANLOGNAME))
                     {
-                        fileSize = rawlog.size();
-                        rawlog.close();
+                        SDFile rawlog = SD.open("/" RAWCANLOGNAME, FILE_READ);
+                        if (rawlog)
+                        {
+                            fileSize = rawlog.size();
+                            rawlog.close();
+                        }
                     }
                     rawlogdetails["filesize"] = fileSize;
-                    rawlogdetails["enabled"] = CANServer::CanBus::logRawCan;
                 }
                 
                 response->setLength();

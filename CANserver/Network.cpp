@@ -5,7 +5,7 @@
 #include <Preferences.h>
 
 // access point network credentials - don't change these
-char* displaySSID = "CANserver";
+const char* displaySSID = "CANserver";
 const char* displayPassword = "JWcanServer2020";
 
 #define CFG1 15   //jumper to toggle second CANserver

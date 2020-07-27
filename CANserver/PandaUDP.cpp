@@ -57,7 +57,7 @@ void PandaUDP::begin(uint16_t localPort) {
             remoteIP = packet.remoteIP();
             remotePort = packet.remotePort();
 
-            Serial.print("Sending to Panda client at: ");
+            Serial.print("Panda client connected at: ");
             Serial.println(remoteIP);
             
 			// Set the timeout to 5 seconds in the future.

@@ -1,13 +1,12 @@
-/*   CAN Server by Josh Wardell
+/*   CAN Server by Josh Wardell and Chris Whiteford
  *   http://www.jwardell.com/canserver/
  *   To be used with microDisplay
  *
- *   July 7 2020
+ *   July 27 2020
  *
  *   Board: Node32s
  *   (must press IO0 right button to start programming)
  */
-
 #include "SerialPorts.h"
 #include "Network.h"
 #include "OTA.h"
@@ -17,6 +16,7 @@
 #include "DisplayState.h"
 #include "WebServer.h"
 #include "PandaUDP.h"
+#include "CANUDP.h"
 
 #define LED1 1    //shared with serial tx - try not to use
 #define LED2 2    //onboard blue LED
@@ -24,6 +24,10 @@
 
 // Create Panda UDP server
 PandaUDP panda;
+
+#ifdef UDPCAN_ENABLED
+CANServer::CANUDP canudp;
+#endif
 
 void setup() {
     pinMode(LED2,OUTPUT);
@@ -59,7 +63,6 @@ void setup() {
     CANServer::CanBus::startup();
 }
 
-
 unsigned long previousMillis = 0;
 void loop()
 {
@@ -69,4 +72,12 @@ void loop()
     CANServer::SerialPorts::handle();   
 
     CANServer::CanBus::handle();
+
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillis >= 5000) 
+    {
+        previousMillis = currentMillis;
+        
+        Serial.println(ESP.getFreeHeap());
+    }
 }
