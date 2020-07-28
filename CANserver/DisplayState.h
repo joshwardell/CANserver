@@ -11,6 +11,7 @@ namespace CANServer
         static DisplayState *display0;
         static DisplayState *display1;
         static DisplayState *display2;
+        static DisplayState *display3;
 
         ~DisplayState();
 

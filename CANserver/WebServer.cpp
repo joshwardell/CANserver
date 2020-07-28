@@ -103,6 +103,13 @@ namespace CANServer
                     CANServer::DisplayState::display2->save();
                 }
 
+                if(request->hasParam("disp3", true))
+                {
+                    AsyncWebParameter* newValue = request->getParam("disp3", true);
+                    CANServer::DisplayState::display3->updateDisplayString(newValue->value().c_str());
+                    CANServer::DisplayState::display3->save();
+                }
+
                 request->redirect("/config");
             });
 
@@ -115,6 +122,7 @@ namespace CANServer
                 displaysettings["disp0"] = CANServer::DisplayState::display0->displayString();
                 displaysettings["disp1"] = CANServer::DisplayState::display1->displayString();
                 displaysettings["disp2"] = CANServer::DisplayState::display2->displayString();
+                displaysettings["disp3"] = CANServer::DisplayState::display3->displayString();
                 displaysettings["dispOff"] = CANServer::DisplayState::offDisplayString();
                 
                 response->setLength();
@@ -381,6 +389,10 @@ namespace CANServer
                 _renderDisplay(request, CANServer::DisplayState::display2);
             });
 
+            server.on("/disp3", HTTP_GET, [](AsyncWebServerRequest *request){
+                _renderDisplay(request, CANServer::DisplayState::display3);
+            });
+
             //receive posts of display buttons, TODO do something with the buttons
             server.on("/post0", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL,
                     [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
@@ -403,6 +415,16 @@ namespace CANServer
                 request->send(200);
             });
             server.on("/post2", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL,
+                    [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
+                
+                /*Serial.print("POST2: ");
+                for (size_t i = 0; i < len; i++) {
+                    Serial.write(data[i]);
+                }
+                Serial.println();*/
+                request->send(200);
+            });
+            server.on("/post3", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL,
                     [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
                 
                 /*Serial.print("POST2: ");

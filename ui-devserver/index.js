@@ -16,6 +16,7 @@ const config =  {
         disp0: "",
         disp1: "",
         disp2: "",
+        disp3: "",
         dispOff: ""
     }
 };
