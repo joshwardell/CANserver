@@ -44,7 +44,9 @@
 //    streaming, the client should send a UDP "hello" request at a minimum once every 5 seconds.
 //
 
-void PandaUDP::begin(uint16_t localPort) {
+void PandaUDP::begin(uint16_t localPort_) {
+
+  localPort = localPort_;
 
 	// Setup the UDP server
 	if (udp.listen(localPort)) {
@@ -68,22 +70,26 @@ void PandaUDP::begin(uint16_t localPort) {
 
 void PandaUDP::handleMessage(CAN_FRAME message) {
 	// If remote port == 0, then we do not have an active client connected.
-    if (remotePort > 0) {
-      if (millis() > timeout) {
-        Serial.print("Closing UDP Connection due to timeout.\n");
-        remotePort = 0;
-      } else {
-        PandaPacket p;
+  if (remotePort > 0) 
+  {
+    if (millis() > timeout) 
+    {
+      Serial.print("Closing UDP Connection due to timeout.\n");
+      remotePort = 0;
+    } 
+    else 
+    {
+      PandaPacket p;
 
-        //Load the packet        
-        p.f1 = message.id << 21;
-        p.f2 = (message.length & 0x0F) | (PANDA_SRC_BUS_ID << 4);
-        memcpy(p.data, message.data.byte, message.length);        
+      //Load the packet        
+      p.f1 = message.id << 21;
+      p.f2 = (message.length & 0x0F) | (PANDA_SRC_BUS_ID << 4);
+      memcpy(p.data, message.data.byte, message.length);        
 
-        //Send to the client
-        udp.writeTo((uint8_t*)&p, sizeof(PandaPacket), remoteIP, remotePort);
-      }
+      //Send to the client
+      udp.writeTo((uint8_t*)&p, sizeof(PandaPacket), remoteIP, localPort);
     }
+  }
 }
 
 PandaUDP::~PandaUDP() {

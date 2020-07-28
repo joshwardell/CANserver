@@ -187,11 +187,10 @@ namespace CANServer
         struct timeval currentTimeOfDay = {0, 0};
         void _processMessage(CAN_FRAME *frame, const uint8_t busId)
         {
-            printFrame(frame);
+            //printFrame(frame);
             
             //Pass this message off to a panda client if one is registered
             panda.handleMessage(*frame);
-
 
             if (logRawCan && _rawCanLogFile)
             {
@@ -203,7 +202,7 @@ namespace CANServer
                 std::ostringstream ss;
                 ss << "(" 
                     << std::setw(10) << std::setfill('0') << currentTimeOfDay.tv_sec << "." << std::setw(6) << std::setfill('0') << int(currentTimeOfDay.tv_usec) << std::setw(0) << std::setfill(' ')
-                    << ") can" << busId << " " 
+                    << ") can" << std::dec << (int)busId << " "
                     << std::setw(3) << std::setfill('0') << std::uppercase << std::hex << (uint)(frame->id) << std::setw(0) << std::setfill(' ')
                     << "#";
                 

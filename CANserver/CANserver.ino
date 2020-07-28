@@ -75,15 +75,17 @@ void loop()
     CANServer::CanBus::handle();
 
     unsigned long currentMillis = millis();
-    if (currentMillis - previousMillisMemoryOutput >= 5000) 
+    if (currentMillis - previousMillisMemoryOutput >= 10000) 
     {
         previousMillisMemoryOutput = currentMillis;
         
+        Serial.print("RAM Usage: ");
         Serial.println(ESP.getFreeHeap());
     }
 
     if (currentMillis - previousMillisLEDBlink >= 500) 
     {
+        //Blink a heartbeat LED
         previousMillisLEDBlink = currentMillis;
         digitalWrite(LED2, !digitalRead(LED2));
     }

@@ -17,6 +17,8 @@ protected:
 
     uint32_t  timeout = 0;
 
+    uint16_t localPort = 0;
+
     IPAddress remoteIP;
     uint16_t  remotePort = 0;
 
