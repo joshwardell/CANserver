@@ -30,13 +30,11 @@ void CANServer::Network::setup()
     if (_externalSSID.length() > 0)
     {
         //We have an external SSID configuration.  Setup as WIFI AP/STA mode
+        Serial.print("Connection to external WiFi: ");
+        Serial.println(_externalSSID);
+
         WiFi.mode(WIFI_AP_STA);
         WiFi.begin(_externalSSID.c_str(), _externalPw.c_str());
-
-    }
-    //else
-    {
-        //No external ssid.  Just startup the softap only
     }
 
     pinMode(CFG1,INPUT_PULLUP);
