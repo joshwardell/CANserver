@@ -17,6 +17,7 @@
 #include "WebServer.h"
 #include "PandaUDP.h"
 #include "CANUDP.h"
+#include "Logging.h"
 
 #define LED1 1    //shared with serial tx - try not to use
 #define LED2 2    //onboard blue LED
@@ -50,6 +51,8 @@ void setup() {
 
     // Begin Panda UDP server
     panda.begin();
+
+    CANServer::Logging::instance()->setup();
 
     //Bring up CAN bus hardware
     CANServer::CanBus::setup();

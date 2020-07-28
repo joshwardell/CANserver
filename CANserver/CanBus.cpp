@@ -2,20 +2,12 @@
 
 #include <Arduino.h>
 #include <esp32_can.h>
-#include <SD.h>
-#include <SPIFFS.h>
-#include <Preferences.h>
-#include <string>
-#include <iostream>
-#include <iomanip>
-#include <sstream>
-
 
 #include "VehicleState.h"
 #include "generalCANSignalAnalysis.h" //https://github.com/iChris93/ArduinoLibraryForCANSignalAnalysis
 #include "pandaUDP.h"
 #include "CANUDP.h"
-#include "SDCard.h"
+#include "Logging.h"
 
 generalCANSignalAnalysis analyzeMessage; //initialize library
 
@@ -58,21 +50,6 @@ namespace CANServer
         }
 
 
-        Preferences _prefs;
-        SDFile _rawCanLogFile;
-
-        bool logRawCan = false;
-
-        void loadSettings()
-        {
-            logRawCan = _prefs.getBool("lograw", false);
-        }
-
-        void saveSettings()
-        {
-             _prefs.putBool("lograw", logRawCan);
-        }
-
         void setup()
         {
             Serial.println("Setting up Can-Bus...");
@@ -87,47 +64,7 @@ namespace CANServer
             canudp.begin();
 #endif
 
-            _prefs.begin("CanBus");
-            
-            loadSettings();
-            if (logRawCan) 
-            {
-                openRawLog();
-            }
-
             Serial.println("Done");
-        }
-
-        void openRawLog()
-        {
-            if (CANServer::SDCard::available())
-            {
-                if (!_rawCanLogFile)
-                {
-                    _rawCanLogFile = SD.open("/" RAWCANLOGNAME, FILE_APPEND);
-
-                    if (_rawCanLogFile)
-                    {
-                        Serial.println("Logging raw messages to SD");
-                    }
-                    else
-                    {
-                        Serial.println("Unable to open raw log file");
-                    }
-                }
-            }
-            else
-            {
-                _rawCanLogFile.close();
-            }
-        }
-
-        void closeRawLog()
-        {
-            if (CANServer::SDCard::available() && _rawCanLogFile)
-            {
-                _rawCanLogFile.close();
-            }
         }
 
         void startup()
@@ -184,7 +121,6 @@ namespace CANServer
 #endif
         }
 
-        struct timeval currentTimeOfDay = {0, 0};
         void _processMessage(CAN_FRAME *frame, const uint8_t busId)
         {
             //printFrame(frame);
@@ -192,31 +128,11 @@ namespace CANServer
             //Pass this message off to a panda client if one is registered
             panda.handleMessage(*frame);
 
-            if (logRawCan && _rawCanLogFile)
-            {
-                //Log this message to the log file (if raw logging is turned on)
+            //Let the logging code deal with this frame as well
+            CANServer::Logging::instance()->handleMessage(frame, busId);
 
-                //(1551774790.942758) can1 7A8#F4DCD1830E020000
-                gettimeofday(&currentTimeOfDay, NULL);
-
-                std::ostringstream ss;
-                ss << "(" 
-                    << std::setw(10) << std::setfill('0') << currentTimeOfDay.tv_sec << "." << std::setw(6) << std::setfill('0') << int(currentTimeOfDay.tv_usec) << std::setw(0) << std::setfill(' ')
-                    << ") can" << std::dec << (int)busId << " "
-                    << std::setw(3) << std::setfill('0') << std::uppercase << std::hex << (uint)(frame->id) << std::setw(0) << std::setfill(' ')
-                    << "#";
-                
-                for (int i = 0; i < frame->length; i++) 
-                {
-                    ss << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << (uint)(frame->data.byte[i]);
-                }
-                _rawCanLogFile.print(ss.str().c_str());
-                _rawCanLogFile.println();
-                _rawCanLogFile.flush();   
-            }
-
+            //Now process this frame and sort out any data we care about
             CANServer::VehicleState* vehicleState = CANServer::VehicleState::instance();
-
             switch(frame->id)
             {
                 case 0x00C:     //ID00CUI_status
@@ -322,8 +238,6 @@ namespace CANServer
                     }
                     break;
                 }
-
-
             }
         }
     }

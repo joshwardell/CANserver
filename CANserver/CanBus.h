@@ -7,15 +7,9 @@ namespace CANServer
 {
     namespace CanBus 
     {
-        extern bool logRawCan;
         void setup();
         void startup();
         void handle();
-
-        void saveSettings();
-
-        void openRawLog();
-        void closeRawLog();
     }
 }
 #endif

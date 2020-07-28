@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         
         <style>
+          body {font-family: sans-serif;}
           label {
             padding-left: 10px;
           }
@@ -22,31 +23,45 @@
           Loading...
           </div>
           <br>
-          <button type="submit">Save</button>
+          <button id="submit" type="submit">Save</button>
         </form>
         <script>
           function initialLoad() {
             $.get('/logs_update', function(response){
               $('#logs').html('');
+              
+              if ("sdpresent" in response)
+              {
+                if (!response.sdpresent)
+                {
+                  $('div#logs').html("No SD card present.  Logging disabled");
+                  $('button#submit').hide();
+                  return;
+                }
+              }
+              
               Object.keys(response).forEach((k, i) => {
-                $newDiv = $('<div id="' + k + '"/>');
-                $labelSpan = $('<span/>').addClass("item").html(k + ":");
-                $newDiv.append($labelSpan);
-                
-                loginfo = response[k];
-                $input = $('<input type="checkbox" name="' + k + '" id="' + k + '"/>').prop('checked', loginfo.enabled);
-                $newDiv.append($input);
-                
-                $fileSize = $('<label>Size:</label>').append($('<span class="size"/>').html(loginfo.filesize));
-                $newDiv.append($fileSize); 
-                
-                $downloadLink = $('<a class="download" href="/log_download?id=' + k + '">Download</a>');
-                $newDiv.append($downloadLink); 
-                
-                $deleteLink =  $('<a class="delete" href="/log_delete?id=' + k + '">Delete</a>');
-                $newDiv.append($deleteLink); 
-                
-                $('#logs').append($newDiv);
+                if (k != 'sdpresent')
+                {
+                  $newDiv = $('<div id="' + k + '"/>');
+                  $labelSpan = $('<span/>').addClass("item").html(k + ":");
+                  $newDiv.append($labelSpan);
+                  
+                  loginfo = response[k];
+                  $input = $('<input type="checkbox" name="' + k + '" id="' + k + '"/>').prop('checked', loginfo.enabled);
+                  $newDiv.append($input);
+                  
+                  $fileSize = $('<label>Size:</label>').append($('<span class="size"/>').html(loginfo.filesize));
+                  $newDiv.append($fileSize); 
+                  
+                  $downloadLink = $('<a class="download" onclick="return confirm(\'Downloading a large file will temporally impact the logging and operation of the CANServer and microDisplays.  Are you sure you want to do this now?\');" href="/log_download?id=' + k + '">Download</a>');
+                  $newDiv.append($downloadLink); 
+                  
+                  $deleteLink =  $('<a class="delete" onclick="return confirm(\'Are you sure you want to delete this log file?\');" href="/log_delete?id=' + k + '">Delete</a>');
+                  $newDiv.append($deleteLink); 
+                  
+                  $('#logs').append($newDiv);
+                }
               });
             });
           }
@@ -55,10 +70,12 @@
           {
             $.get('/logs_update', function(response){
               Object.keys(response).forEach((k, i) => {
-                console.log(k);
-                loginfo = response[k];
+                if (k != 'sdpresent')
+                {
+                  loginfo = response[k];
                 
-                $('div#' + k + ' span.size').html(loginfo.filesize);
+                  $('div#' + k + ' span.size').html(loginfo.filesize);
+                }
               });
             });
           }

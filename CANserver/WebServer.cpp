@@ -20,6 +20,7 @@
 #include "SDCard.h"
 #include "CanBus.h"
 #include "Network.h"
+#include "Logging.h"
 
 #include "ginger.h"
 
@@ -253,6 +254,9 @@ namespace CANServer
 
 
 
+
+
+
             //Accessability to log files
             server.on("/logs", HTTP_GET, [](AsyncWebServerRequest *request) {
                 request->send(SPIFFS, "/html/logs.html");
@@ -262,24 +266,17 @@ namespace CANServer
                 AsyncJsonResponse * response = new AsyncJsonResponse();
                 JsonVariant& doc = response->getRoot();
 
+                CANServer::Logging *logginginstance = CANServer::Logging::instance();
                 {
                     //raw log details
                     JsonObject rawlogdetails = doc.createNestedObject("rawlog");                    
-                    size_t fileSize = 0;
                     
-                    rawlogdetails["enabled"] = CANServer::CanBus::logRawCan;
-                    if (SD.exists("/" RAWCANLOGNAME))
-                    {
-                        SDFile rawlog = SD.open("/" RAWCANLOGNAME, FILE_READ);
-                        if (rawlog)
-                        {
-                            fileSize = rawlog.size();
-                            rawlog.close();
-                        }
-                    }
-                    rawlogdetails["filesize"] = fileSize;
+                    rawlogdetails["enabled"] = logginginstance->isActive(CANServer::Logging::LogType_Raw);
+                    rawlogdetails["filesize"] = logginginstance->fileSize(CANServer::Logging::LogType_Raw);
                 }
                 
+                doc["sdpresent"] = SDCard::available();
+
                 response->setLength();
                 request->send(response);
 
@@ -291,9 +288,21 @@ namespace CANServer
                 {
                     AsyncWebParameter* logid = request->getParam("id", false);
 
+                    CANServer::Logging *logginginstance = CANServer::Logging::instance();
+
                     if (logid->value() == "rawlog")
                     {
-                        request->send(SD, "/" RAWCANLOGNAME, "application/octet-stream", true);
+                        CANServer::Logging::LogType logType = CANServer::Logging::LogType_Raw;
+                        //Disable before download and enable (if enabled) after
+                        bool isEnabled = logginginstance->isActive(logType);
+                        logginginstance->disable(logType);
+
+                        request->send(SD, logginginstance->path(logType), "application/octet-stream", true);
+
+                        if (isEnabled)
+                        {
+                            logginginstance->enable(logType);
+                        }
                         return;
                     }
                 }
@@ -310,24 +319,7 @@ namespace CANServer
 
                     if (logid->value() == "rawlog")
                     {
-                        bool restartLogging = false;
-                        if (CANServer::CanBus::logRawCan)
-                        {
-                            //If we are logging we need to stop logging so we can remove the file and then start again after
-                            restartLogging = true;
-                            CANServer::CanBus::logRawCan = false;
-                            CANServer::CanBus::closeRawLog();
-                            CANServer::CanBus::saveSettings();
-                        }  
-
-                        SD.remove("/" RAWCANLOGNAME);   
-
-                        if (restartLogging)
-                        {
-                            CANServer::CanBus::logRawCan = true;
-                            CANServer::CanBus::openRawLog();
-                            CANServer::CanBus::saveSettings();
-                        }     
+                        CANServer::Logging::instance()->deleteFile(CANServer::Logging::LogType_Raw);                        
                     }
                 }
                 
@@ -348,33 +340,25 @@ namespace CANServer
                     {
                         requestedRawLogState = false;
                     }
-                    
                 }
+
                 if (requestedRawLogState)
                 {
-                    if (CANServer::CanBus::logRawCan == false)
-                    {
-                        //We need to make sure the file gets opened
-                        CANServer::CanBus::openRawLog();
-                    }
-
-                    CANServer::CanBus::logRawCan = true;
-                    CANServer::CanBus::saveSettings();
+                    CANServer::Logging::instance()->enable(CANServer::Logging::LogType_Raw);
                 }
                 else
                 {
-                    if (CANServer::CanBus::logRawCan == true)
-                    {
-                        //We need to make sure the file gets closed
-                        CANServer::CanBus::closeRawLog();
-                    }
-
-                    CANServer::CanBus::logRawCan = false;
-                    CANServer::CanBus::saveSettings();
+                    CANServer::Logging::instance()->disable(CANServer::Logging::LogType_Raw);
                 }
+
+                CANServer::Logging::instance()->saveConfiguraiton();
 
                 request->redirect("/logs");
             });    
+
+
+
+
 
 
 

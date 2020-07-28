@@ -27,6 +27,7 @@ const network =  {
 };
 
 const logs = {
+    sdpresent: true,
     rawlog: {
         enabled: true,
         filesize: 1
