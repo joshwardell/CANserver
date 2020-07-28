@@ -63,7 +63,8 @@ void setup() {
     CANServer::CanBus::startup();
 }
 
-unsigned long previousMillis = 0;
+unsigned long previousMillisMemoryOutput = 0;
+unsigned long previousMillisLEDBlink = 0;
 void loop()
 {
     //Deal with any pending OTA related work
@@ -74,10 +75,16 @@ void loop()
     CANServer::CanBus::handle();
 
     unsigned long currentMillis = millis();
-    if (currentMillis - previousMillis >= 5000) 
+    if (currentMillis - previousMillisMemoryOutput >= 5000) 
     {
-        previousMillis = currentMillis;
+        previousMillisMemoryOutput = currentMillis;
         
         Serial.println(ESP.getFreeHeap());
+    }
+
+    if (currentMillis - previousMillisLEDBlink >= 500) 
+    {
+        previousMillisLEDBlink = currentMillis;
+        digitalWrite(LED2, !digitalRead(LED2));
     }
 }
