@@ -29,6 +29,11 @@ If you have multiple microDisplays, you can configure them with jumpers on the b
 
 When the display starts up, before it connects to a server, it will show its configuration on the screen.
 
+```diff
+- Temperature warning -
+```
+The display contains plastics that may melt in the extreme heat of a car cabin. Activate Tesla's Cabin Overheat Protection feature in fan only mode to keep the cabin at a safe temperature, and do not install on the outside of a window reflector.
+
 ### Modes
 
 In addition to the main data signal mode, the microDisplay supports text, scrolling graphs, and a few other options. See the separate displaycommands document for technical detail on the display modes and how to program and communicate with the microDisplay. Eventually these will just be presented as configuration options.
@@ -63,6 +68,8 @@ Coming soon or add your own, support for two BTTF-style LED displays, based on t
 
 **12v Accessory Relay**
 
-Coming soon, a right board with added 3A 12V relay so you can program it to turn off accessories like amps and radar detectors whenever you want (like when you exit the car). Activated by the right IO instead of the LED.
+![Relay Board](img/relay.jpg)
 
-Jul 27, 2020
+A right board with added 3A 12V relay so you can program it to turn off accessories like amps and radar detectors whenever you want (like when you exit the car). Activated by the right IO instead of the LED.
+
+Jul 28, 2020
