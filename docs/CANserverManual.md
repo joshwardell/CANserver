@@ -93,6 +93,13 @@ PlaformIO can also program over USB. First determine your USB port and update th
 
 Remember to press the right IO0 button when you see "Connecting..."
 
+## Developing on the web-based frontend without Arduino/C++
+
+You can start and modify the web-based frontend to CANserver outside of the embedded environment.
+Install NodeJS on your system and run `cd ui-devserver && npm i && npm start`.
+
+You can now modify the web-based runtime for the project in `data/html`, `data/css` and `data/js`. The results will be available on `http://localhost:8080`when the development server is restarted. The devserver uses a simplified mock-API that simulates a very basic embedded environment. This is useful if you want to help improve the product but do not have embedded/C++ knowledge.
+
 **FAQ/etc**
 
 I laid out the board to accept two common ESP32 modules and to use commonly available parts. A few notes:
