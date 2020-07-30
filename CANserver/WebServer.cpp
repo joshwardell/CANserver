@@ -1,9 +1,13 @@
 #include "WebServer.h"
 
 #include <Arduino.h>
+#include <esp_wifi.h>
 #include <ESPAsyncWebServer.h>
-
 #include <SPIFFS.h>
+
+#include <iostream>
+#include <iomanip>
+#include <sstream>
 
 //The SPIFFS editor taks up a lot of flash space.  For development purposes it is nice to have, but for production it should prob be comented out
 #define INCLUDE_SPIFFS_EDITOR
@@ -181,6 +185,46 @@ namespace CANServer
                 response->setLength();
                 request->send(response);
             }); 
+
+            server.on("/network_stationlist", HTTP_GET, [](AsyncWebServerRequest *request) {
+
+                AsyncJsonResponse * response = new AsyncJsonResponse();
+                JsonVariant& doc = response->getRoot();
+
+                wifi_sta_list_t wifi_sta_list;
+                tcpip_adapter_sta_list_t adapter_sta_list;
+                
+                memset(&wifi_sta_list, 0, sizeof(wifi_sta_list));
+                memset(&adapter_sta_list, 0, sizeof(adapter_sta_list));
+                
+                esp_wifi_ap_get_sta_list(&wifi_sta_list);
+                tcpip_adapter_get_sta_list(&wifi_sta_list, &adapter_sta_list);
+                
+                JsonArray stationsList = doc.createNestedArray("stations"); 
+                std::stringstream macStringStream;
+                for (int i = 0; i < adapter_sta_list.num; i++) {
+                
+                    JsonObject stationInfo = stationsList.createNestedObject(); 
+
+                    tcpip_adapter_sta_info_t station = adapter_sta_list.sta[i];
+                
+                    macStringStream.str("");
+                    macStringStream.clear();
+
+                    macStringStream << std::setw(2) << std::setfill('0') << std::uppercase << std::hex;
+                    for(int i = 0; i< 6; i++)
+                    {
+                        if (i > 0) { macStringStream << ":"; }
+                        macStringStream << (uint)(station.mac[i]);
+                    }
+    
+                    stationInfo["mac"] = macStringStream.str();
+                    stationInfo["ip"] = ip4addr_ntoa(&(station.ip));
+                }            
+                
+                response->setLength();
+                request->send(response);                
+            });
 
            
 

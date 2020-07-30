@@ -26,6 +26,19 @@ const network =  {
     }
 };
 
+const network_stationlist_json = {
+    stations: [
+        {
+            mac: "DE:AD:BE:EF:BA:AD",
+            ip: "192.168.4.2"
+        },
+        {
+            mac: "BA:AD:FE:ED:DE:AD",
+            ip: "192.168.4.3"
+        }
+    ]
+};
+
 const logs = {
     rawlog:{
        enabled:false,
@@ -144,6 +157,10 @@ app.get('/network_update', (req, res) => {
 
 app.post('/network_save', (req, res) => {
     res.redirect('/network');
+});
+
+app.get('/network_stationlist', (req, res) => {
+    res.json(network_stationlist_json);
 });
 
 app.get('/debug_update', (req, res) => {

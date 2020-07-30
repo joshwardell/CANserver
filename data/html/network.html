@@ -4,7 +4,14 @@
         <script src="/js/zepto.min.js"></script>
         <link rel="icon" href="data:,">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>body {font-family: sans-serif;}</style>
+        <style>
+          body {font-family: sans-serif;}
+          
+          label {
+            width: 150px;
+            display: inline-block;
+          }
+        </style>
     </head>
     <body>
         <H1>Network Config</H1>
@@ -12,11 +19,16 @@
         <div id="networkparams">
           <div id="loading">Loading...</div>
           <form action="/network_save" method="POST" id="settingsform" style="display:none;">
-            External SSID: <input name="ssid" id="ssid"/> *To disable external wifi connectivity just make sure this box is empty<br>
-            External Password: <input name="password" id="password"/> *saved password isn't displayed.  If you leave it empty and hit save it will be removed<br>
+            <label>External SSID: </label><input name="ssid" id="ssid"/> *To disable external wifi connectivity just make sure this box is empty<br>
+            <label>External Password: </label><input name="password" id="password"/> *saved password isn't displayed.  If you leave it empty and hit save it will be removed<br>
             <br>
             <button type="submit">Save</button>
           </form>
+          
+          <h3>Connected Clients</h3>
+          <div id="stationlist">
+            Loading...
+          </div>
         </div>
         <script>
           function initialLoad() {
@@ -37,7 +49,37 @@
             }
           }
 
+          function loadClients()
+          {
+            $.get('/network_stationlist', function(response){
+
+              if ("stations" in response) {
+                $('#stationlist').html('');
+
+                if (response.stations.length == 0)
+                {
+                  $('#stationlist').html('No Connected Clients');
+                }
+                else
+                {
+                  $list = $('<ul>');
+                  Object.keys(response.stations).forEach((k, i) => {
+                    var theStation = response.stations[k];
+
+                    $listItem = $('<li>').html(theStation.mac + " - " + theStation.ip);
+                    $list.append($listItem);  
+                  });
+
+                  $('#stationlist').html($list);
+                }
+              }
+
+              setTimeout("loadClients();", 10000);
+            });
+          }
+
           initialLoad();
+          loadClients();
         </script>
     </body>
 </html>
