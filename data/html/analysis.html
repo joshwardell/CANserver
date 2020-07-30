@@ -1,0 +1,225 @@
+<html>
+    <head>
+        <title>Analysis</title>
+        <script src="/js/zepto.min.js"></script>
+        <link rel="icon" href="data:,">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          body {font-family: sans-serif;}
+          
+          tr td {
+            text-align: center;
+            padding: 2px 5px;
+          }
+          input.frameid, input.startbit, input.bitlength, input.factor, input.signaloffset {
+            width:50px;
+          }
+                    
+          tbody tr:nth-child(even) {
+            background-color: lightgrey; 
+          }
+        </style>
+    </head>
+    <body>
+        <H1>Analysis</H1>
+        <a href="/">Home</a><br><br>
+        <div id="dynamicanalysisitems">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 161px;">Name</th>
+                <th style="width: 70px;">Frame ID</th>
+                <th style="width: 64px;">Start Bit</th>
+                <th style="width: 80px;">Bit Length</th>
+                <th style="width: 58px;">Factor</th>
+                <th style="width: 100px;">Signal Offset</th>
+                <th style="width: 72px;">Is Signed</th>
+                <th style="width: 96px;">Little Endian</th>
+                <th style="width: 68px;">Value</th>
+                <th style="width: 50px;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr id="loading">
+                <td colspan="10" style="text-align:left !important">Loading...</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr id="noitems" style="display: none;">
+                <td colspan="10" style="text-align:left !important">No items</td>
+              </tr>
+              <tr style="display: none;" id="rowtemplate">
+                <td>
+                  <input class="name" name="name" value="" maxlength="10">
+                </td>
+                <td>
+                  <input class="frameid" name="frameid" value="">
+                </td>
+                <td>
+                  <input class="startbit" name="startbit" value="" type="number">
+                </td>
+                <td>
+                  <input class="bitlength" name="bitlength" value="" type="number">
+                </td>
+                <td>
+                  <input class="factor" name="factor" value="">
+                </td>
+                <td>
+                  <input class="signaloffset" name="signaloffset" value="">
+                </td>
+                <td>
+                  <input class="issigned" name="issigned" type="checkbox">
+                </td>
+                <td>
+                  <input class="littleendian" name="littleendian" type="checkbox">
+                </td>
+                <td class="value"> --- </td>
+                <td>
+                  <a alt="Save" title="Save" href="javascript:void(0);" onclick="saveItem(this);"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAH+SURBVBgZBcE9i11VGAbQtc/sO0OCkqhghEREAwpWAWUg8aMVf4KFaJEqQtAipTZWViKiCGOh2Ap2gmJhlSIWFsFOxUK0EsUM3pl79n4f12qHb3z3Fh7D83gC95GOJsDe0ixLk5Qq/+xv/Lw9Xd+78/HLX3Y8fXTr2nWapy4eCFKxG7Fby97SnDlYtMbxthyfzHO//nl85fNvfvnk8MbX5xa8IHx1518Vkrj54Q+qQms2vVmWZjdiu5ZR2rT01166/NCZg/2PFjwSVMU6yjoC1oq+x6Y3VbHdlXWExPd379nf7Nmejv2Os6OC2O4KLK0RNn3RNCdr2Z5GJSpU4o+/TkhaJ30mEk5HwNuvX7Hpi76wzvjvtIwqVUSkyjqmpHS0mki8+9mPWmuWxqYvGkbFGCUAOH/+QevYI9GFSqmaHr5wkUYTAlGhqiRRiaqiNes6SOkwJwnQEqBRRRJEgkRLJGVdm6R0GLMQENE0EkmkSkQSVVMqopyuIaUTs0J455VLAAAAAODW0U/GiKT0pTWziEj44PZ1AAAAcPPqkTmH3QiJrlEVDXDt0qsAAAAAapa5BqUnyaw0Am7//gUAAAB49tEXzTmtM5KkV/y2G/X4M5fPao03n/sUAAAAwIX7y5yBv9vhjW/fT/IkuSp5gJKElKRISYoUiSRIyD1tufs/IXxui20QsKIAAAAASUVORK5CYII="></a>
+                  <a alt="Delete" title="Delete" href="javascript:void(0);" onclick="deleteItem(this);"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAJdSURBVDjLpZP7S1NhGMf9W7YfogSJboSEUVCY8zJ31trcps6zTI9bLGJpjp1hmkGNxVz4Q6ildtXKXzJNbJRaRmrXoeWx8tJOTWptnrNryre5YCYuI3rh+8vL+/m8PA/PkwIg5X+y5mJWrxfOUBXm91QZM6UluUmthntHqplxUml2lciF6wrmdHriI0Wx3xw2hAediLwZRWRkCPzdDswaSvGqkGCfq8VEUsEyPF1O8Qu3O7A09RbRvjuIttsRbT6HHzebsDjcB4/JgFFlNv9MnkmsEszodIIY7Oaut2OJcSF68Qx8dgv8tmqEL1gQaaARtp5A+N4NzB0lMXxon/uxbI8gIYjB9HytGYuusfiPIQcN71kjgnW6VeFOkgh3XcHLvAwMSDPohOADdYQJdF1FtLMZPmslvhZJk2ahkgRvq4HHUoWHRDqTEDDl2mDkfheiDgt8pw340/EocuClCuFvboQzb0cwIZgki4KhzlaE6w0InipbVzBfqoK/qRH94i0rgokSFeO11iBkp8EdV8cfJo0yD75aE2ZNRvSJ0lZKcBXLaUYmQrCzDT6tDN5SyRqYlWeDLZAg0H4JQ+Jt6M3atNLE10VSwQsN4Z6r0CBwqzXesHmV+BeoyAUri8EyMfi2FowXS5dhd7doo2DVII0V5BAjigP89GEVAtda8b2ehodU4rNaAW+dGfzlFkyo89GTlcrHYCLpKD+V7yeeHNzLjkp24Uu1Ed6G8/F8qjqGRzlbl2H2dzjpMg1KdwsHxOlmJ7GTeZC/nesXbeZ6c9OYnuxUc3fmBuFft/Ff8xMd0s65SXIb/gAAAABJRU5ErkJggg=="></a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+          <br>
+          <button onclick="newItem();">New Item</button>
+        </div>
+        
+
+        <script>
+        
+          function hexToDec(hex) {
+            var result = 0, digitValue;
+            hex = hex.toLowerCase();
+            for (var i = 0; i < hex.length; i++) {
+              digitValue  = '0123456789abcdefgh'.indexOf(hex[i]);
+              result = result * 16 + digitValue;
+            }
+            return result;
+          }
+          
+          $.get('/analysis_load', function(response){
+            var haveItems = false;
+            
+            $('tr#loading').remove();
+            Object.keys(response).forEach((k, i) => {
+              haveItems = true;
+              itemdetails = response[k];
+              
+              $rowCopy = $("tfoot tr#rowtemplate").clone();
+              $rowCopy.show();
+              
+              $rowCopy.attr('id', k);
+              
+              $('input.name', $rowCopy).val(k);
+              $('input.frameid', $rowCopy).val('0x' + itemdetails.frameid.toString(16));
+              $('input.startbit', $rowCopy).val(itemdetails.startBit);
+              $('input.bitlength', $rowCopy).val(itemdetails.bitLength);
+              $('input.factor', $rowCopy).val(itemdetails.factor);
+              $('input.signaloffset', $rowCopy).val(itemdetails.signalOffset);
+              $('input.issigned', $rowCopy).prop('checked', itemdetails.isSigned);
+              $('input.littleendian', $rowCopy).prop('checked', itemdetails.byteOrder);
+              
+              $('table tbody').append($rowCopy);
+            });
+
+            if (!haveItems) {
+              $('tr#noitems').show();
+            }
+          });
+          
+          function newItem()
+          {
+            $rowCopy = $("tfoot tr#rowtemplate").clone();
+              $rowCopy.show();
+              
+              $rowCopy.attr('id', '----new----');
+              
+              $('table tbody').append($rowCopy);
+              $('tr#noitems').hide();
+          }
+          
+          function saveItem(rowhref)
+          {
+            $rowToWorkOn = $(rowhref).parent().parent();
+            
+            var newName = $('input.name', $rowToWorkOn).val();
+            
+            var foundNameCount = 0;
+            $('input.name').each(function (i, obj) {
+              if ($(obj).val() == newName) {
+                foundNameCount++;
+              }
+            });
+            
+            if (foundNameCount == 1)
+            {
+              postInfo = {};
+              if ($rowToWorkOn.attr('id') == "----new----") {
+                postInfo['state'] = 'new';
+              } else {
+                postInfo['state'] = 'update';
+              }
+              
+              postInfo['name'] = newName;
+              postInfo['frameid'] = hexToDec($('input.frameid', $rowToWorkOn).val().substr(2));
+              postInfo['startbit'] = Number($('input.startbit', $rowToWorkOn).val());
+              postInfo['bitlength'] = Number($('input.bitlength', $rowToWorkOn).val());
+              postInfo['factor'] = Number($('input.factor', $rowToWorkOn).val());
+              postInfo['signaloffset'] = Number($('input.signaloffset', $rowToWorkOn).val());
+              postInfo['issigned'] = $('input.issigned', $rowToWorkOn).prop('checked');
+              postInfo['littleendian'] = $('input.littleendian', $rowToWorkOn).prop('checked');
+              
+              $.ajax({
+                url: "/analysis_save",
+                type: 'POST',
+                data: postInfo,
+                success: function(data) {
+                  window.location = "/analysis";
+                }
+              });
+            }
+            else
+            {
+              alert('You can\'t have duplicate names.  Please choose a unique name');
+            }
+          }
+          
+          function deleteItem(rowhref)
+          {
+            $rowToWorkOn = $(rowhref).parent().parent();
+            if ($rowToWorkOn.attr('id') == "----new----") {
+              $rowToWorkOn.remove();
+            }
+            else
+            {
+              var shouldDelete = confirm('Are you sure you want to delete this item?  If any displays are referencing it they will stop being able to display this data point.');
+              if (shouldDelete)
+              {
+                postInfo = {};
+                postInfo['name'] = $rowToWorkOn.attr('id');
+                
+                $.ajax({
+                  url: "/analysis_delete",
+                  type: 'POST',
+                  data: postInfo,
+                  success: function(data) {
+                    window.location = "/analysis";
+                  }
+                });
+              }
+            }
+          }
+          
+          function updateLoad() {
+            $.get('/analysis_update', function(response){
+              Object.keys(response).forEach((k, i) => {
+                  $('tr#' + k + ' td.value').html(response[k]);
+                });
+            });
+          }
+          
+          setInterval('updateLoad()', 1000);
+        </script>
+    </body>
+</html>

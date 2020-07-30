@@ -4,17 +4,22 @@
         <script src="/js/zepto.min.js"></script>
         <link rel="icon" href="data:,">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>body {font-family: sans-serif;}</style>
     </head>
     <body>
       <h1>CANServer</h1>
       <ul>
         <li><a href="/config">Display Config</a></li>
         <li><a href="/network">Network Config</a></li>
+        <li><a href="/analysis">Analysis</a></li>
         <li><a href="/logs">Logs</a></li>
         <li><a href="/debug">Debug</a></li>
       </ul>
       <button onclick="$.get('/restart');">Restart</button>
-
-      <p><a href="https://github.com/joshwardell/CANserver">https://github.com/joshwardell/CANserver</a></p>
+      
+      <p><a href="https://github.com/joshwardell/CANserver">https://github.com/joshwardell/CANserver</a><br>
+        Build Date: %BUILD_DATE%
+      </p>
+      
     </body>
 </html>

@@ -31,6 +31,14 @@
 #define FETCH_HELPER(keyname) vehiclestatus[#keyname] = vehicleStateInstance->keyname;
 AsyncWebServer server(80);
 
+String _buildDate(const String& var)
+{
+  if(var == "BUILD_DATE")
+    return F(__DATE__ " " __TIME__);
+
+  return String();
+}
+
 namespace CANServer
 {
     namespace WebServer
@@ -52,7 +60,7 @@ namespace CANServer
 
                 } catch (ginger::parse_error& error) {
                     //Serial.println(error.long_error().c_str());
-                    request->send(200, "text/plain", "1m2sDISPLAY  ERROR  t");
+                    request->send(200, "text/plain", "1m2s DISPLAY  ERROR  t500r");
                 }
             }
             else
@@ -71,7 +79,8 @@ namespace CANServer
         #endif
 
             server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-                request->send(SPIFFS, "/html/index.html");
+                //TODO FIRMWARE DATE
+                request->send(SPIFFS, "/html/index.html", String(), false, _buildDate);
             });
 
 
@@ -123,7 +132,6 @@ namespace CANServer
                 displaysettings["disp1"] = CANServer::DisplayState::display1->displayString();
                 displaysettings["disp2"] = CANServer::DisplayState::display2->displayString();
                 displaysettings["disp3"] = CANServer::DisplayState::display3->displayString();
-                displaysettings["dispOff"] = CANServer::DisplayState::offDisplayString();
                 
                 response->setLength();
                 request->send(response);
@@ -141,10 +149,19 @@ namespace CANServer
                     AsyncWebParameter* newValue = request->getParam("ssid", true);
                     CANServer::Network::setExternalWifiSSID(newValue->value());
                 }
+                else
+                {
+                    CANServer::Network::setExternalWifiPassword("");
+                }
+                
                 if(request->hasParam("password", true))
                 {
                     AsyncWebParameter* newValue = request->getParam("password", true);
                     CANServer::Network::setExternalWifiPassword(newValue->value());
+                }
+                else
+                {
+                    CANServer::Network::setExternalWifiPassword("");
                 }
 
                 request->redirect("/network");
@@ -254,10 +271,16 @@ namespace CANServer
                 FETCH_HELPER(BSR)
                 FETCH_HELPER(BSL)
                 FETCH_HELPER(DisplayOn)
+
+                JsonObject dynamicanalysisitems = doc.createNestedObject("dynamicanalysisitems");
+                for (CANServer::CanBus::AnalysisItemMap::const_iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->begin(); it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end(); it++)
+                {
+                    CANServer::CanBus::AnalysisItem *analysisItem = it->second;
+                    dynamicanalysisitems[it->first] = analysisItem->_lastValue;
+                }
                 
                 response->setLength();
                 request->send(response);
-
             });    
 
 
@@ -269,19 +292,20 @@ namespace CANServer
             server.on("/logs", HTTP_GET, [](AsyncWebServerRequest *request) {
                 request->send(SPIFFS, "/html/logs.html");
             }); 
-
+#define LOGSettingsUpdateHelper(postvarname, logtype) {\
+JsonObject detailsNode = doc.createNestedObject(postvarname);\
+detailsNode["enabled"] = logginginstance->isActive(logtype);\
+detailsNode["hasfile"] = logginginstance->path(logtype).length() > 0;\
+detailsNode["filesize"] = logginginstance->fileSize(logtype);\
+}
             server.on("/logs_update", HTTP_GET, [](AsyncWebServerRequest *request) {
                 AsyncJsonResponse * response = new AsyncJsonResponse();
                 JsonVariant& doc = response->getRoot();
 
                 CANServer::Logging *logginginstance = CANServer::Logging::instance();
-                {
-                    //raw log details
-                    JsonObject rawlogdetails = doc.createNestedObject("rawlog");                    
-                    
-                    rawlogdetails["enabled"] = logginginstance->isActive(CANServer::Logging::LogType_Raw);
-                    rawlogdetails["filesize"] = logginginstance->fileSize(CANServer::Logging::LogType_Raw);
-                }
+                
+                LOGSettingsUpdateHelper("rawlog", CANServer::Logging::LogType_Raw);
+                LOGSettingsUpdateHelper("seriallog", CANServer::Logging::LogType_Serial);
                 
                 doc["sdpresent"] = SDCard::available();
 
@@ -334,36 +358,186 @@ namespace CANServer
                 request->redirect("/logs");
             }); 
 
+#define LOGSettingsSaveHelper(postvarname, logtype) {\
+bool requestedRawLogState = false; \
+if (request->hasParam(postvarname, true))\
+{\
+    AsyncWebParameter* newValue = request->getParam(postvarname, true);\
+    if (newValue->value() == "on")\
+    {\
+        requestedRawLogState = true;\
+    }\
+    else\
+    {\
+        requestedRawLogState = false;\
+    }\
+}\
+\
+if (requestedRawLogState)\
+{\
+    logginginstance->enable(logtype);\
+}\
+else\
+{\
+    logginginstance->disable(logtype);\
+}\
+}
             server.on("/logs_save", HTTP_POST, [](AsyncWebServerRequest * request) {
                 
-                bool requestedRawLogState = false;
-                if (request->hasParam("rawlog", true))
-                {
-                    AsyncWebParameter* newValue = request->getParam("rawlog", true);                    
-                    if (newValue->value() == "on")
-                    {
-                        requestedRawLogState = true;
-                    }
-                    else
-                    {
-                        requestedRawLogState = false;
-                    }
-                }
+                CANServer::Logging *logginginstance = CANServer::Logging::instance();
 
-                if (requestedRawLogState)
-                {
-                    CANServer::Logging::instance()->enable(CANServer::Logging::LogType_Raw);
-                }
-                else
-                {
-                    CANServer::Logging::instance()->disable(CANServer::Logging::LogType_Raw);
-                }
+                LOGSettingsSaveHelper("rawlog", CANServer::Logging::LogType_Raw);
+                LOGSettingsSaveHelper("seriallog", CANServer::Logging::LogType_Serial);
 
                 CANServer::Logging::instance()->saveConfiguraiton();
 
                 request->redirect("/logs");
             });    
 
+
+            //Dynamic Analysis configuration
+            server.on("/analysis", HTTP_GET, [](AsyncWebServerRequest *request){
+                request->send(SPIFFS, "/html/analysis.html");
+            });
+
+            server.on("/analysis_delete", HTTP_POST, [](AsyncWebServerRequest * request) {
+                if(request->hasParam("name", true))
+                {
+                    std::string itemName = request->getParam("name", true)->value().c_str();
+
+                    CANServer::CanBus::instance()->pauseDynamicAnalysis();
+                   
+                    CANServer::CanBus::AnalysisItemMap::iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->find(itemName);
+                    if (it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end())
+                    {
+                        delete it->second;
+                        CANServer::CanBus::instance()->dynamicAnalysisItems()->erase(itemName);
+                    }                        
+                    
+                    CANServer::CanBus::instance()->saveDynamicAnalysisConfiguration();
+                    CANServer::CanBus::instance()->resumeDynamicAnalysis();
+
+                    request->send(200); 
+                }
+                else
+                {
+                   request->send(404); 
+                }
+            });
+             
+
+            server.on("/analysis_save", HTTP_POST, [](AsyncWebServerRequest * request) {
+                
+/*
+state: update
+name: TestVolts
+frameid: 306
+startbit: 0
+bitlength: 16
+factor: 0.01
+signaloffset: 0
+issigned: false
+littleendian: true
+*/
+                if(request->hasParam("state", true) &&
+                    request->hasParam("name", true) &&
+                    request->hasParam("frameid", true) &&
+                    request->hasParam("startbit", true) &&
+                    request->hasParam("bitlength", true) &&
+                    request->hasParam("factor", true) &&
+                    request->hasParam("signaloffset", true))
+                {
+                    std::string itemName = request->getParam("name", true)->value().c_str();
+
+                    CANServer::CanBus::AnalysisItem *analysisItem = new CANServer::CanBus::AnalysisItem();
+                    analysisItem->_frameId = atoi(request->getParam("frameid", true)->value().c_str());
+                    analysisItem->_startBit = atoi(request->getParam("startbit", true)->value().c_str());
+                    analysisItem->_bitLength = atoi(request->getParam("bitlength", true)->value().c_str());
+                    analysisItem->_factor = atof(request->getParam("factor", true)->value().c_str());
+                    analysisItem->_signalOffset = atoi(request->getParam("signaloffset", true)->value().c_str());
+
+                    if (request->hasParam("issigned", true) && request->getParam("issigned", true)->value() == "true")
+                    {
+                        analysisItem->_isSigned = true;
+                    }
+                    else
+                    {
+                        analysisItem->_isSigned = false;
+                    }
+
+                    if (request->hasParam("littleendian", true) && request->getParam("littleendian", true)->value() == "true")
+                    {
+                        analysisItem->_byteOrder = true;
+                    }
+                    else
+                    {
+                        analysisItem->_byteOrder = true;
+                    }
+
+
+                    CANServer::CanBus::instance()->pauseDynamicAnalysis();
+                    if(request->hasParam("state", true) && request->getParam("state", true)->value() == "update")
+                    {
+                        //Clean up the old entry so we can replace it
+                        CANServer::CanBus::AnalysisItemMap::iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->find(itemName);
+                        if (it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end())
+                        {
+                            delete it->second;
+                            CANServer::CanBus::instance()->dynamicAnalysisItems()->erase(itemName);
+                        }                        
+                    }
+
+                    //insert our new entry
+                    CANServer::CanBus::instance()->dynamicAnalysisItems()->insert(CANServer::CanBus::AnalysisItemPair(itemName, analysisItem));
+
+                    CANServer::CanBus::instance()->saveDynamicAnalysisConfiguration();
+                    CANServer::CanBus::instance()->resumeDynamicAnalysis();
+                }
+                else
+                {
+                    //We didn't have all the params we needed.  404 for you
+                    request->send(404);
+                }
+
+                request->send(200);
+            });
+
+            server.on("/analysis_load", HTTP_GET, [](AsyncWebServerRequest *request) {
+                AsyncJsonResponse * response = new AsyncJsonResponse();
+                JsonVariant& doc = response->getRoot();
+
+                
+                for (CANServer::CanBus::AnalysisItemMap::const_iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->begin(); it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end(); it++)
+                {
+                    JsonObject dynamicanalysisitem = doc.createNestedObject(it->first);
+                    CANServer::CanBus::AnalysisItem *analysisItem = it->second;
+
+                    dynamicanalysisitem["frameid"] = analysisItem->_frameId;
+                    dynamicanalysisitem["startBit"] = analysisItem->_startBit;
+                    dynamicanalysisitem["bitLength"] = analysisItem->_bitLength;
+                    dynamicanalysisitem["factor"] = analysisItem->_factor;
+                    dynamicanalysisitem["signalOffset"] = analysisItem->_signalOffset;
+                    dynamicanalysisitem["isSigned"] = analysisItem->_isSigned;
+                    dynamicanalysisitem["byteOrder"] = analysisItem->_byteOrder;
+                }
+
+                response->setLength();
+                request->send(response);
+            }); 
+
+            server.on("/analysis_update", HTTP_GET, [](AsyncWebServerRequest *request) {
+                AsyncJsonResponse * response = new AsyncJsonResponse();
+                JsonVariant& doc = response->getRoot();
+
+                for (CANServer::CanBus::AnalysisItemMap::const_iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->begin(); it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end(); it++)
+                {
+                    CANServer::CanBus::AnalysisItem *analysisItem = it->second;
+                    doc[it->first] = analysisItem->_lastValue;
+                }
+
+                response->setLength();
+                request->send(response);
+            }); 
 
 
 
@@ -396,46 +570,21 @@ namespace CANServer
             //receive posts of display buttons, TODO do something with the buttons
             server.on("/post0", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL,
                     [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
-
-                /*Serial.print("POST0: ");
-                for (size_t i = 0; i < len; i++) {
-                    Serial.write(data[i]);
-                }
-                Serial.println();*/
                 request->send(200);
             });
             server.on("/post1", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL,
                     [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
-                
-                /*Serial.print("POST1: ");
-                for (size_t i = 0; i < len; i++) {
-                    Serial.write(data[i]);
-                }
-                Serial.println();*/
                 request->send(200);
             });
             server.on("/post2", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL,
                     [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
-                
-                /*Serial.print("POST2: ");
-                for (size_t i = 0; i < len; i++) {
-                    Serial.write(data[i]);
-                }
-                Serial.println();*/
                 request->send(200);
             });
             server.on("/post3", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL,
                     [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
-                
-                /*Serial.print("POST2: ");
-                for (size_t i = 0; i < len; i++) {
-                    Serial.write(data[i]);
-                }
-                Serial.println();*/
                 request->send(200);
             });
             
-           
 
 
             //Static content related URL handling
@@ -446,39 +595,41 @@ namespace CANServer
             });
 
 
+
             // Start server
             server.begin();
 
             Serial.println("Done");
         }
 
-#define POPULATEHELPER(name) {\
-(*vars)[#name] = vehicleStateInstance->name;\
+#define POPULATEHELPER(name, multiplier) {\
+(*vars)[#name] = vehicleStateInstance->name * multiplier;\
 }
         void _populateTemplateVaraibles(ginger::temple *vars)
         {
             CANServer::VehicleState *vehicleStateInstance = CANServer::VehicleState::instance();
-            POPULATEHELPER(BattPower);
-            POPULATEHELPER(BattVolts)
-            POPULATEHELPER(BattAmps)
-            POPULATEHELPER(BattPower)
-            POPULATEHELPER(RearTorque)
-            POPULATEHELPER(FrontTorque)
-            POPULATEHELPER(MinBattTemp)
-            POPULATEHELPER(BattCoolantRate)
-            POPULATEHELPER(PTCoolantRate)
-            POPULATEHELPER(MaxRegen)
-            POPULATEHELPER(MaxDisChg)
+
+            //Deal with our statically analysised items
+            POPULATEHELPER(BattPower, 1);
+            POPULATEHELPER(BattVolts, 10)
+            POPULATEHELPER(BattAmps, 10)
+            POPULATEHELPER(RearTorque, 10)
+            POPULATEHELPER(FrontTorque, 10)
+            POPULATEHELPER(MinBattTemp, 10)
+            POPULATEHELPER(BattCoolantRate, 10)
+            POPULATEHELPER(PTCoolantRate, 10)
+            POPULATEHELPER(MaxRegen, 10)
+            POPULATEHELPER(MaxDisChg, 10)
             
             if (vehicleStateInstance->SpeedUnit == 1) 
             { 
                 //MPH
-                (*vars)["VehSpeed"] = int(0.621371 * vehicleStateInstance->VehSpeed);
+                (*vars)["VehSpeed"] = int(0.621371 * vehicleStateInstance->VehSpeed * 10);
             } 
             else 
             {
                 //KMH
-                (*vars)["VehSpeed"] = vehicleStateInstance->VehSpeed;
+                (*vars)["VehSpeed"] = vehicleStateInstance->VehSpeed * 10;
             }
 
             if (vehicleStateInstance->SpeedUnit == 1) 
@@ -492,20 +643,28 @@ namespace CANServer
                 (*vars)["SpeedUnitString"] = "HPK";
             }
 
-            POPULATEHELPER(SpeedUnit)
-            POPULATEHELPER(v12v261)
-            POPULATEHELPER(BattCoolantTemp)
-            POPULATEHELPER(PTCoolantTemp)
-            POPULATEHELPER(BattRemainKWh)
-            POPULATEHELPER(BattFullKWh)
-            POPULATEHELPER(InvHStemp376)
-            POPULATEHELPER(BSR)
-            POPULATEHELPER(BSL)
-            POPULATEHELPER(DisplayOn)
+            POPULATEHELPER(SpeedUnit, 1)
+            POPULATEHELPER(v12v261, 10)
+            POPULATEHELPER(BattCoolantTemp, 10)
+            POPULATEHELPER(PTCoolantTemp, 10)
+            POPULATEHELPER(BattRemainKWh, 10)
+            POPULATEHELPER(BattFullKWh, 10)
+            POPULATEHELPER(InvHStemp376, 10)
+            POPULATEHELPER(BSR, 1)
+            POPULATEHELPER(BSL, 1)
+            POPULATEHELPER(DisplayOn, 1)
 
             //Some scaled vars that are used by the default bargraph display
             (*vars)["BattPower_Scaled_Bar"] = int(0.008 * vehicleStateInstance->BattPower);
             (*vars)["RearTorque_Scaled_Bar"] = int(0.006 * vehicleStateInstance->RearTorque);
+
+
+            //Deal with our dynamically analysised items
+            for (CANServer::CanBus::AnalysisItemMap::const_iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->begin(); it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end(); it++)
+            {
+                CANServer::CanBus::AnalysisItem *analysisItem = it->second;
+                (*vars)[it->first] = analysisItem->_lastValue * 10;
+            }
         }
     }
 }

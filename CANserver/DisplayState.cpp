@@ -27,7 +27,7 @@ void CANServer::DisplayState::updateDisplayString(const char* newValue)
 
 String _settingsFileName(const int id)
 {
-    String fileName = String("/settings/display") + id + String(".conf");
+    String fileName = String(F("/settings/display")) + id + String(F(".conf"));
 
     return fileName;
 }
@@ -54,22 +54,22 @@ void CANServer::DisplayState::load()
     {
         case 0:
         {
-            _displayString = "65535c${BattPower}vWK  Bu${BattPower_Scaled_Bar}b0m120r";
+            _displayString = F("65535c${BattPower}vWK  Bu${BattPower_Scaled_Bar}b0m100r");
             break;
         }
         case 1:
         {
-            _displayString = "65535c${RearTorque}vMNu${RearTorque_Scaled_Bar}b0m120r";
+            _displayString = F("65535c${RearTorque}vMNu${RearTorque_Scaled_Bar}b0m100r");
             break;
         }
         case 2:
         {
-            _displayString = "$if BSR {{2v63488c6m120r}} $elseif BSL {{1v63488c6m120r}} $else {{65535c${VehSpeed}v${SpeedUnitString}u${BattPower_Scaled_Bar}b0m120r}}";
+            _displayString = F("$if BSR {{2v63488c6m100r}} $elseif BSL {{1v63488c6m100r}} $else {{65535c${VehSpeed}v${SpeedUnitString}u${BattPower_Scaled_Bar}b0m100r}}");
             break;
         }
         case 3:
         {
-            _displayString = "1m2sDISPLAY    3   t";
+            _displayString = F("1m2s DISPLAY    3   t500r");
             break;
         }
     }

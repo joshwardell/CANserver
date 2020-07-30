@@ -51,14 +51,16 @@
                   $input = $('<input type="checkbox" name="' + k + '" id="' + k + '"/>').prop('checked', loginfo.enabled);
                   $newDiv.append($input);
                   
-                  $fileSize = $('<label>Size:</label>').append($('<span class="size"/>').html(loginfo.filesize));
-                  $newDiv.append($fileSize); 
+                  if (loginfo.hasfile) {
+                    $fileSize = $('<label>Size:</label>').append($('<span class="size"/>').html(loginfo.filesize));
+                    $newDiv.append($fileSize); 
                   
-                  $downloadLink = $('<a class="download" onclick="return confirm(\'Downloading a large file will temporally impact the logging and operation of the CANServer and microDisplays.  Are you sure you want to do this now?\');" href="/log_download?id=' + k + '">Download</a>');
-                  $newDiv.append($downloadLink); 
+                    $downloadLink = $('<a class="download" onclick="return confirm(\'Downloading a large file will temporally impact the logging and operation of the CANServer and microDisplays.  Are you sure you want to do this now?\');" href="/log_download?id=' + k + '">Download</a>');
+                    $newDiv.append($downloadLink); 
                   
-                  $deleteLink =  $('<a class="delete" onclick="return confirm(\'Are you sure you want to delete this log file?\');" href="/log_delete?id=' + k + '">Delete</a>');
-                  $newDiv.append($deleteLink); 
+                    $deleteLink =  $('<a class="delete" onclick="return confirm(\'Are you sure you want to delete this log file?\');" href="/log_delete?id=' + k + '">Delete</a>');
+                    $newDiv.append($deleteLink); 
+                  }
                   
                   $('#logs').append($newDiv);
                 }

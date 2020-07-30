@@ -4,8 +4,9 @@
         <script src="/js/zepto.min.js"></script>
         <link rel="icon" href="data:,">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        
         <style>
+          body {font-family: sans-serif;}
+          
           input {
             width: 50px;
             margin-left:10px;
@@ -65,10 +66,28 @@
                   $('#debugparams').append($newDiv);
                 });
               }
+              
+              if ("dynamicanalysisitems" in data) {
+                $('#debugparams').append($("<h4>Dynamic Analysis Items</h4>"));
+                Object.keys(data.dynamicanalysisitems).forEach((k, i) => {
+                  $newDiv = $('<div id="' + k + '"/>');
+                  $labelSpan = $('<span/>').addClass("item").html(k + ":");
+                  $newDiv.append($labelSpan);
+                  $theValue = $('<span/>').addClass('value').html(data.dynamicanalysisitems[k]);
+                  $newDiv.append($theValue);
+                  
+                  $('#debugparams').append($newDiv);
+                });
+              }
             } else {
               if ("vehiclestatus" in data) {
                 Object.keys(data.vehiclestatus).forEach((k, i) => {
                   $('div#' + k + ' span.value').html(data.vehiclestatus[k]);
+                }); 
+              }
+              if ("dynamicanalysisitems" in data) {
+                Object.keys(data.dynamicanalysisitems).forEach((k, i) => {
+                  $('div#' + k + ' span.value').html(data.dynamicanalysisitems[k]);
                 }); 
               }
             }

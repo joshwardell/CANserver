@@ -59,7 +59,7 @@ void PandaUDP::begin(uint16_t localPort_) {
             remoteIP = packet.remoteIP();
             remotePort = packet.remotePort();
 
-            Serial.print("Panda client connected at: ");
+            Serial.print("Panda packet from: ");
             Serial.println(remoteIP);
             
 			// Set the timeout to 5 seconds in the future.
@@ -74,7 +74,7 @@ void PandaUDP::handleMessage(CAN_FRAME message) {
   {
     if (millis() > timeout) 
     {
-      Serial.print("Closing UDP Connection due to timeout.\n");
+      Serial.println("Closing Panda stream due to timeout");
       remotePort = 0;
     } 
     else 

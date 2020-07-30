@@ -55,7 +55,7 @@ void setup() {
     CANServer::Logging::instance()->setup();
 
     //Bring up CAN bus hardware
-    CANServer::CanBus::setup();
+    CANServer::CanBus::instance()->setup();
 
     CANServer::DisplayState::loadAll();
 
@@ -63,7 +63,7 @@ void setup() {
     CANServer::WebServer::setup();
 
     //Spin up CAN bus and get it ready to process messages
-    CANServer::CanBus::startup();
+    CANServer::CanBus::instance()->startup();
 }
 
 unsigned long previousMillisMemoryOutput = 0;
@@ -75,7 +75,7 @@ void loop()
     CANServer::OTA::handle();
     CANServer::SerialPorts::handle();   
 
-    CANServer::CanBus::handle();
+    CANServer::CanBus::instance()->handle();
 
     unsigned long currentMillis = millis();
     if (currentMillis - previousMillisMemoryOutput >= 10000) 

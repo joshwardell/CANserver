@@ -17,7 +17,6 @@ const config =  {
         disp1: "",
         disp2: "",
         disp3: "",
-        dispOff: ""
     }
 };
 
@@ -30,8 +29,14 @@ const network =  {
 const logs = {
     sdpresent: true,
     rawlog: {
-        enabled: true,
-        filesize: 1
+        enabled: false,
+        hasfile: true,
+        filesize: 0
+    },
+    seriallog: {
+        enabled: false,
+        hasfile: false,
+        filesize: 0
     }
 };
 
@@ -54,6 +59,10 @@ app.get('/logs', (req, res) => {
 
 app.get('/debug', (req, res) => {
     res.sendFile(dataDir + '/html/debug.html');
+});
+
+app.get('/analysis', (req, res) => {
+    res.sendFile(dataDir + '/html/analysis.html');
 });
 
 // web service endpoints
@@ -95,6 +104,14 @@ app.get('/log_delete', (req, res) => {
 
 app.post('/logs_save', (req, res) => {
     res.redirect('/logs');
+});
+
+app.get('/analysis_load', (req, res) => {
+    res.json({});
+});
+
+app.get('/analysis_update', (req, res) => {
+    res.json({});
 });
 
 // fallback other assets like CSS and JS

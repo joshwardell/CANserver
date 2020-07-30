@@ -16,7 +16,7 @@ namespace CANServer
         typedef enum {
             LogType_Unknown = 0,
             LogType_Raw = 1,
-            LogType_Serial = 99,
+            LogType_Serial = 50,
         } LogType;
 
         static Logging* instance();
