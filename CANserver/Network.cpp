@@ -152,18 +152,12 @@ void CANServer::Network::handle()
             scanActive = false;
 
             //Scan of the last channel is done.  Check to see if we see the SSID we want
-            //Serial.print(scanReturnCode);
-            //Serial.print(" networks found for channel: ");
-            //Serial.println(channelToScanNext);
             for (int i = 0; i < scanReturnCode; ++i) 
             {
-                Serial.print(i + 1);
-                Serial.print(": ");
                 if (WiFi.SSID(i) == _externalSSID)
                 {
                     foundExternalSSID = true;
                 }
-                Serial.println(WiFi.SSID(i));
             }
 
             WiFi.scanDelete();

@@ -13,39 +13,94 @@ const dataDir = path.join(__dirname, '../data');
 // mock objects
 const config =  {
     displaysettings: {
-        disp0: "",
-        disp1: "",
-        disp2: "",
-        disp3: "",
+        disp0: "65535c${BattPower}vWK  Bu${BattPower_Scaled_Bar}b0m100r",
+        disp1: "65535c${RearTorque}vMNu${RearTorque_Scaled_Bar}b0m100r",
+        disp2: "$if BSR {{2v63488c6m100r}} $elseif BSL {{1v63488c6m100r}} $else {{65535c${VehSpeed}v${SpeedUnitString}u${BattPower_Scaled_Bar}b0m100r}}",
+        disp3: "1m2s DISPLAY    3   t500r",
     }
 };
 
 const network =  {
     networksettings: {
-        ssid: ""
+        ssid: "externalssid"
     }
 };
 
 const logs = {
-    sddetails: {
-        available: true,
-        totalkbytes: 0,
-        usedkbytes: 0
+    rawlog:{
+       enabled:false,
+       hasfile:true,
+       filesize:123456
     },
-    rawlog: {
-        enabled: false,
-        hasfile: true,
-        filesize: 0
+    intervallog:{
+       enabled:true,
+       hasfile:true,
+       filesize:54432
     },
-    intervallog: {
-        enabled: false,
-        hasfile: true,
-        filesize: 0
+    seriallog:{
+       enabled:false,
+       hasfile:false,
+       filesize:0
     },
-    seriallog: {
-        enabled: false,
-        hasfile: false,
-        filesize: 0
+    sddetails:{
+       available:true,
+       totalkbytes:7875,
+       usedkbytes:2
+    }
+};
+
+const analysis_load_json = {
+    TestVolts: {
+        frameid: 306,
+        startBit: 0,
+        bitLength: 16,
+        factor: 0.01,
+        signalOffset: 0,
+        isSigned: false,
+        byteOrder: true
+    },
+    TestAmps: {
+        frameid: 306,
+        startBit: 16,
+        bitLength: 16,
+        factor: -0.1,
+        signalOffset: 0,
+        isSigned: true,
+        byteOrder: true
+    }
+};
+
+const analysis_update_json = {
+    TestVolts: 350,
+    TestAmps: 99,
+};
+
+const debug_update_json = {
+    vehiclestatus: {
+      BattVolts: 350,
+      BattAmps: 99,
+      RearTorque: 1210,
+      FrontTorque: 0,
+      MinBattTemp: 0,
+      BattCoolantRate: 0,
+      PTCoolantRate: 0,
+      MaxRegen: 45,
+      MaxDisChg: 0,
+      VehSpeed: 69,
+      SpeedUnit: 0,
+      v12v261: 0,
+      BattCoolantTemp: 0,
+      PTCoolantTemp: 0,
+      BattRemainKWh: 0,
+      BattFullKWh: 420,
+      InvHStemp376: 0,
+      BSR: 0,
+      BSL: 0,
+      DisplayOn: 1
+    },
+    dynamicanalysisitems: {
+      TestVolts: 350,
+      TestAmps: 99
     }
 };
 
@@ -92,7 +147,7 @@ app.post('/network_save', (req, res) => {
 });
 
 app.get('/debug_update', (req, res) => {
-    res.json({});
+    res.json(debug_update_json);
 });
 
 app.post('/debug_save', (req, res) => {
@@ -116,11 +171,11 @@ app.post('/logs_save', (req, res) => {
 });
 
 app.get('/analysis_load', (req, res) => {
-    res.json({});
+    res.json(analysis_load_json);
 });
 
 app.get('/analysis_update', (req, res) => {
-    res.json({});
+    res.json(analysis_update_json);
 });
 
 // fallback other assets like CSS and JS
