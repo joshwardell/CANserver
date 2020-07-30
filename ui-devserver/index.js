@@ -27,8 +27,17 @@ const network =  {
 };
 
 const logs = {
-    sdpresent: true,
+    sddetails: {
+        available: true,
+        totalkbytes: 0,
+        usedkbytes: 0
+    },
     rawlog: {
+        enabled: false,
+        hasfile: true,
+        filesize: 0
+    },
+    intervallog: {
         enabled: false,
         hasfile: true,
         filesize: 0

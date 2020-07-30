@@ -84,6 +84,9 @@ namespace CANServer
             });
 
 
+
+
+
             //Display configuration related url handling
             server.on("/config", HTTP_GET, [](AsyncWebServerRequest *request){
                 request->send(SPIFFS, "/html/config.html");
@@ -180,6 +183,8 @@ namespace CANServer
             }); 
 
            
+
+
 
 
             //Debug related url handling
@@ -305,9 +310,16 @@ detailsNode["filesize"] = logginginstance->fileSize(logtype);\
                 CANServer::Logging *logginginstance = CANServer::Logging::instance();
                 
                 LOGSettingsUpdateHelper("rawlog", CANServer::Logging::LogType_Raw);
+                LOGSettingsUpdateHelper("intervallog", CANServer::Logging::LogType_Interval);
                 LOGSettingsUpdateHelper("seriallog", CANServer::Logging::LogType_Serial);
                 
-                doc["sdpresent"] = SDCard::available();
+                JsonObject sdDetailsNode = doc.createNestedObject("sddetails");
+                sdDetailsNode["available"] = SDCard::available();
+                if (SDCard::available())
+                {
+                    sdDetailsNode["totalkbytes"] = (uint32_t)(SD.totalBytes() / (1024 * 1024));
+                    sdDetailsNode["usedkbytes"] = (uint32_t)(SD.usedBytes() / (1024 * 1024));
+                }
 
                 response->setLength();
                 request->send(response);
@@ -322,9 +334,18 @@ detailsNode["filesize"] = logginginstance->fileSize(logtype);\
 
                     CANServer::Logging *logginginstance = CANServer::Logging::instance();
 
+                    CANServer::Logging::LogType logType = CANServer::Logging::LogType_Unknown;
                     if (logid->value() == "rawlog")
                     {
-                        CANServer::Logging::LogType logType = CANServer::Logging::LogType_Raw;
+                        logType = CANServer::Logging::LogType_Raw;
+                    }
+                    else if (logid->value() == "intervallog")
+                    {
+                        logType = CANServer::Logging::LogType_Interval;
+                    }
+
+                    if (logType != CANServer::Logging::LogType_Unknown)
+                    {
                         //Disable before download and enable (if enabled) after
                         bool isEnabled = logginginstance->isActive(logType);
                         logginginstance->disable(logType);
@@ -349,9 +370,19 @@ detailsNode["filesize"] = logginginstance->fileSize(logtype);\
                 {
                     AsyncWebParameter* logid = request->getParam("id", false);
 
+                    CANServer::Logging::LogType logType = CANServer::Logging::LogType_Unknown;
                     if (logid->value() == "rawlog")
                     {
-                        CANServer::Logging::instance()->deleteFile(CANServer::Logging::LogType_Raw);                        
+                        logType = CANServer::Logging::LogType_Raw;
+                    }
+                    else if (logid->value() == "intervallog")
+                    {
+                        logType = CANServer::Logging::LogType_Interval;
+                    }
+
+                    if (logType != CANServer::Logging::LogType_Unknown)
+                    {
+                        CANServer::Logging::instance()->deleteFile(logType);                        
                     }
                 }
                 
@@ -387,12 +418,15 @@ else\
                 CANServer::Logging *logginginstance = CANServer::Logging::instance();
 
                 LOGSettingsSaveHelper("rawlog", CANServer::Logging::LogType_Raw);
+                LOGSettingsSaveHelper("intervallog", CANServer::Logging::LogType_Interval);
                 LOGSettingsSaveHelper("seriallog", CANServer::Logging::LogType_Serial);
 
                 CANServer::Logging::instance()->saveConfiguraiton();
 
                 request->redirect("/logs");
             });    
+
+
 
 
             //Dynamic Analysis configuration

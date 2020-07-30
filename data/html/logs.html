@@ -13,6 +13,14 @@
           a.download, a.delete {
             padding-left:10px;
           }
+          .sdspace::after { 
+            content: " KB";
+          }
+          
+          span.logname {
+            display:inline-block;
+            width: 90px;
+          }
         </style>
     </head>
     <body>
@@ -30,9 +38,9 @@
             $.get('/logs_update', function(response){
               $('#logs').html('');
               
-              if ("sdpresent" in response)
+              if ("sddetails" in response)
               {
-                if (!response.sdpresent)
+                if (!response.sddetails.available)
                 {
                   $('div#logs').html("No SD card present.  Logging disabled");
                   $('button#submit').hide();
@@ -41,10 +49,23 @@
               }
               
               Object.keys(response).forEach((k, i) => {
-                if (k != 'sdpresent')
+                $newDiv = $('<div id="' + k + '"/>');
+                if (k == 'sddetails')
                 {
-                  $newDiv = $('<div id="' + k + '"/>');
-                  $labelSpan = $('<span/>').addClass("item").html(k + ":");
+                  $newDiv.css("padding-bottom", "10px");
+                  sddetails = response[k];
+                  $totalSpace = $('<div><span>Total SD Space: </span></div>').append($('<span class="totalspace sdspace"/>').html(sddetails.totalkbytes));
+                  $usedSpace = $('<div><span>Used SD Space: </span></div>').append($('<span class="usedspace sdspace"/>').html(sddetails.usedkbytes));
+                  
+                  $newDiv.append($totalSpace);
+                  $newDiv.append($usedSpace);
+                  
+                  $('#logs').prepend($newDiv);
+                }
+                else
+                {
+                  
+                  $labelSpan = $('<span class="logname"/>').addClass("item").html(k);
                   $newDiv.append($labelSpan);
                   
                   loginfo = response[k];
@@ -52,14 +73,14 @@
                   $newDiv.append($input);
                   
                   if (loginfo.hasfile) {
-                    $fileSize = $('<label>Size:</label>').append($('<span class="size"/>').html(loginfo.filesize));
-                    $newDiv.append($fileSize); 
-                  
-                    $downloadLink = $('<a class="download" onclick="return confirm(\'Downloading a large file will temporally impact the logging and operation of the CANServer and microDisplays.  Are you sure you want to do this now?\');" href="/log_download?id=' + k + '">Download</a>');
+                    $downloadLink = $('<a class="download" alt="Download" title="Download" onclick="return confirm(\'Downloading a large file will temporally impact the logging and operation of the CANServer and microDisplays.  Are you sure you want to do this now?\');" href="/log_download?id=' + k + '"><img style="vertical-align: text-top;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAGdSURBVDjLlZNLSwJhFIa1Rb8iIWhRQUlluuoftDEtC5TKSgINily1CmoT0kJBqwlSaBGBLVxItGgZQQQVFe3bKN7wOjqO2tucwRGvqAMPMzDf+8w5ZzgyADLhGhJQCWi6MCwwQBkJWVWg4jguVSqVKuVyGe0Q3sPtdruaJZJAQ+FcLgeWZWuk02kkk0lEIhFREg6H4fF4GiR0yUlABwqFAorFongnstksUqkUotGoKMjn86CPMAwjSloEFJYgAQUymQxisVhLS9WZyBsEQhu1A/RMfUutxONxsZJQKNRZ0Ey9hCqheSQSid4F9RJqh2ZCor4EBM/z4lxIQvQtoCp2HtexfW+CObAM062uu4BCElSBJWjEzc8Vrr8Y6L3zvQsoTKz6F+H7PAPz7oLRp8eodmSjp7/geDqG2b8Me9CK8zcnXK8O7AWsmDtUF9UHUw/1gr+2O8BzsPm3YLvbhPPlBI7nI6xc6jC9P/Gr3B0flHZhVpgyKwQ6LpPFtwaTdwmGCy0MpwsVWsD6ZVKQpNs6z9iV35PWsY/q6iso+w9crJoc0rRwaAAAAABJRU5ErkJggg=="></a>');
                     $newDiv.append($downloadLink); 
                   
-                    $deleteLink =  $('<a class="delete" onclick="return confirm(\'Are you sure you want to delete this log file?\');" href="/log_delete?id=' + k + '">Delete</a>');
+                    $deleteLink =  $('<a class="delete" alt="Delete" title="Delete" onclick="return confirm(\'Are you sure you want to delete this log file?\');" href="/log_delete?id=' + k + '"><img style="vertical-align: text-top;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAGqSURBVDjLlZM7S0JhGMfVox+gqYZuQkMETYZNQmi2+QGKligiCBoalFragoqGzDM41NRQQy4VKDhUSyC0NLR1EeKIt7wePV7/vc/BI97NF36cA+f9/97neQ6vCoCKrVGGgWHswyRDQxkFVU1gkCQpWSqVKuVyGZ1g3+Fyuc5aJYrASOFsNgtRFOukUikkEgmEw2FZEgqFwPN8k4SWmgS0IZ/Po1AoyE8ik8kgmUwiEonIglwuBzrE7XbLkjYBhRVIQIF0Oo1oNNrWUm0m6iYBa6O+gd6pb6WVWCwmVyIIQndBK40SqoTmEY/H/y9olFA7NBMSDSQgisWiPBeSEAMLqIrvWyde1mbgt+jwtDIBfl7D9xRQSCHoOceb3YT8wymq716I17sIbM9WfGbtTl8Blf+8OoUcC8NpAxxDwKEe0eMF+Ba5z75/gaCyq68eNK7EwQj8Zm21UVDtNoPH5XFkL9YBFpLsKvwyglscfFbuR7kLc2zKItvc8TJ93ZwgsDkNwaFHZE+Hjw01/DZtxWvl9hXBGEl6XeXLpWH+zsIJVPa9hQtfmbgjyv4BPlWugike25IAAAAASUVORK5CYII="></a>');
                     $newDiv.append($deleteLink); 
+                    
+                    $fileSize = $('<div><label>Size: </label></div>').css('padding-bottom', "10px;").append($('<span class="size"/>').html(loginfo.filesize));
+                    $newDiv.append($fileSize); 
                   }
                   
                   $('#logs').append($newDiv);
@@ -72,7 +93,10 @@
           {
             $.get('/logs_update', function(response){
               Object.keys(response).forEach((k, i) => {
-                if (k != 'sdpresent')
+                if (k == 'sddetails')
+                {
+                }
+                else
                 {
                   loginfo = response[k];
                 

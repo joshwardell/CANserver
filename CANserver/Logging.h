@@ -16,6 +16,7 @@ namespace CANServer
         typedef enum {
             LogType_Unknown = 0,
             LogType_Raw = 1,
+            LogType_Interval = 2,
             LogType_Serial = 50,
         } LogType;
 
@@ -55,6 +56,15 @@ namespace CANServer
         typedef std::map<const LogType, LogDetails_t> LogMap;
         typedef std::pair<const LogType, LogDetails_t> LogPair;
         LogMap _logs;
+
+        typedef std::map<const uint32_t, time_t> LogIntervalTrackingMap;
+        typedef std::pair<const uint32_t, time_t> LogIntervalTrackingPair;
+        typedef std::map<const uint8_t, LogIntervalTrackingMap> LogIntervalBusTrackignMap;
+        typedef std::pair<const uint8_t, LogIntervalTrackingMap> LogIntervalBusTrackignPair;
+
+        LogIntervalBusTrackignMap _intervalTracker;
+
+        std::stringstream* _generateCandumpOutputString(std::stringstream* stringStreamToUse, const time_t tv_sec, const suseconds_t tv_usec, const CAN_FRAME* frame, const uint8_t busId);
     };
 }
 #endif
