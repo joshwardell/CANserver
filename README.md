@@ -11,10 +11,15 @@ Please see this thread for development discussion:
 https://teslaownersonline.com/threads/canserver-development.16373/
 
 TODO list for the near future:
+
 ~~* Customization of CAN messages and signals - grab string from serial or web and convert to message ID, bits, scale, units, etc.~~
+
 ~~* Customization of each display - assingning signals, format, etc~~
+
 ~~* Saving these customizations to onboard eeprom~~
+
 ~~* A simple web page served to enter these configurations - pull up 192.168.4.1 on your phone and fill in a few fields~~
+
 * Logically standardize this to be handled by external phone or PC tools in the future over wifi
 
 Other goodies on the soon list:
