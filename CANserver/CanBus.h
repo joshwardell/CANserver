@@ -3,6 +3,8 @@
 
 #include <esp32_can.h>
 #include <map>
+#include <list>
+
 
 namespace CANServer 
 {
@@ -15,17 +17,25 @@ namespace CANServer
         public:
             AnalysisItem();
             
-            uint32_t _frameId;
-            uint8_t _startBit;
-            uint8_t _bitLength;
-            double _factor;
-            int _signalOffset;
-            bool _isSigned;
-            bool _byteOrder;
+            uint32_t frameId;
+            uint8_t startBit;
+            uint8_t bitLength;
+            double factor;
+            int signalOffset;
+            bool isSigned;
+            bool byteOrder;
 
-            float _lastValue;
+            bool builtIn;
+
+            float lastValue;
         };
 
+        //This structure allows us to lookup Analysis items quickly by can frame id
+        //It just contains pointers to the real stuff.
+        typedef std::map<const uint32_t, std::list<AnalysisItem*> > AnalysisItemFrameLookupMap;
+        typedef std::pair<const uint32_t, std::list<AnalysisItem*> > AnalysisItemFrameLookupPair;
+
+        //This structure is where we store the actual analysis items so we can look them up by name
         typedef std::map<std::string, AnalysisItem*> AnalysisItemMap;
         typedef std::pair<std::string, AnalysisItem*> AnalysisItemPair;
        
@@ -42,7 +52,15 @@ namespace CANServer
         void pauseDynamicAnalysis();
         void resumeDynamicAnalysis();
 
-        void saveDynamicAnalysisConfiguration();
+        void saveDynamicAnalysisFile(const char* itemName);
+        void deleteDynamicAnalysisFile(const char* itemName);
+
+        void resolveLookups();
+
+        //Some pointeres to items that get used frequently (so we don't want to have to hunt for them every time)
+        AnalysisItem* DisplayOnAnalysisItem() { return _displayOnAnalysisItem; }
+        AnalysisItem* DistanceUnitMilesAnalysisItem() { return _distanceUnitMilesAnalysisItem; }
+        
 
     private:
         CanBus();
@@ -59,6 +77,11 @@ namespace CANServer
 
         bool _dynamicAnalysisPaused;
         AnalysisItemMap _analysisItems;
+        AnalysisItemFrameLookupMap _quickFrameIdLookup_analysisItems;
+
+        //Some pointers to keep track of some special built in items that the system needs to run right.
+        AnalysisItem *_displayOnAnalysisItem;
+        AnalysisItem *_distanceUnitMilesAnalysisItem;
     };
 }
 #endif

@@ -13,7 +13,7 @@
           }
           .item {
             display: inline-block;
-            width:150px;
+            width:250px;
           }
           .value {
             display: inline-block;
@@ -68,6 +68,9 @@
               }
               
               if ("dynamicanalysisitems" in data) {
+                
+                $dynamic_toplevel = $('<div>').attr('id', 'dymanicitems');
+                
                 $('#debugparams').append($("<h4>Dynamic Analysis Items</h4>"));
                 Object.keys(data.dynamicanalysisitems).forEach((k, i) => {
                   $newDiv = $('<div id="' + k + '"/>');
@@ -76,8 +79,28 @@
                   $theValue = $('<span/>').addClass('value').html(data.dynamicanalysisitems[k]);
                   $newDiv.append($theValue);
                   
-                  $('#debugparams').append($newDiv);
+                  $dynamic_toplevel.append($newDiv);  
                 });
+                
+                $('#debugparams').append($dynamic_toplevel);
+              }
+              
+              if ("processeditems" in data) {
+                $('#debugparams').append($("<h4>Processed Items</h4>"));
+                
+                $processed_toplevel = $('<div>').attr('id', 'processeditems');
+                
+                Object.keys(data.processeditems).forEach((k, i) => {
+                  $newDiv = $('<div id="' + k + '"/>');
+                  $labelSpan = $('<span/>').addClass("item").html(k + ":");
+                  $newDiv.append($labelSpan);
+                  $theValue = $('<span/>').addClass('value').html(data.processeditems[k]);
+                  $newDiv.append($theValue);
+                  
+                  $processed_toplevel.append($newDiv);
+                });
+                
+                $('#debugparams').append($processed_toplevel);
               }
             } else {
               if ("vehiclestatus" in data) {
@@ -87,7 +110,12 @@
               }
               if ("dynamicanalysisitems" in data) {
                 Object.keys(data.dynamicanalysisitems).forEach((k, i) => {
-                  $('div#' + k + ' span.value').html(data.dynamicanalysisitems[k]);
+                  $('div#dymanicitems div#' + k + ' span.value').html(data.dynamicanalysisitems[k]);
+                }); 
+              }
+              if ("processeditems" in data) {
+                Object.keys(data.processeditems).forEach((k, i) => {
+                  $('div#processeditems div#' + k + ' span.value').html(data.processeditems[k]);
                 }); 
               }
             }

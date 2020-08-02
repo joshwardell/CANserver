@@ -1,0 +1,122 @@
+<html>
+    <head>
+        <title>Processing</title>
+        <script src="/js/zepto.min.js"></script>
+        <link rel="icon" href="data:,">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          body {font-family: sans-serif;}
+          .tln-active,.tln-wrapper,.tln-line{margin:0;border:0;padding:0;outline:0;box-sizing:border-box;vertical-align:middle;list-style:none}.tln-active{display:inline-block;padding:.625em;width:calc(100% - 3em);height:100%;word-break:break-all;border:1px solid #aeaeae;background-color:#fff;resize:none;overflow-wrap:normal;overflow-x:auto;white-space:pre;font:1em/1.5 "Roboto Mono",monospace}.tln-wrapper{width:3em;padding:.6875em .3125em 2.1875em;height:100%;word-break:break-all;overflow:hidden;display:inline-block;counter-reset:line}.tln-line{width:100%;display:block;text-align:right;line-height:1.5;font-size:1em;color:#aeaeae}.tln-line::before{counter-increment:line;content:counter(line);font-size:1em;user-select:none}
+          
+          span#scriptstate {
+            padding: 4px;
+            display: inline-block;
+          }
+          span#scriptstate.good {
+            color: #fff;
+            background-color: #0A0;
+          }
+          span#scriptstate.bad {
+            color: #fff;
+            background-color: #F00;
+          }
+          textarea {
+            tab-size: 2;
+          }
+        </style>
+        <script>const TLN={eventList:{},update_line_numbers:function(e,t){let n=e.value.split("\n").length-t.children.length;if(n>0){const e=document.createDocumentFragment();for(;n>0;){const t=document.createElement("span");t.className="tln-line",e.appendChild(t),n--}t.appendChild(e)}for(;n<0;)t.removeChild(t.lastChild),n++},append_line_numbers:function(e){const t=document.getElementById(e);if(null==t)return console.warn("[tln.js] Couldn't find textarea of id '"+e+"'");if(-1!=t.className.indexOf("tln-active"))return console.warn("[tln.js] textarea of id '"+e+"' is already numbered");t.classList.add("tln-active"),t.style={};const n=document.createElement("div");n.className="tln-wrapper",t.parentNode.insertBefore(n,t),TLN.update_line_numbers(t,n),TLN.eventList[e]=[];const l=["propertychange","input","keydown","keyup"],o=function(e,t){return function(n){(10!=+e.scrollLeft||37!=n.keyCode&&37!=n.which&&"ArrowLeft"!=n.code&&"ArrowLeft"!=n.key)&&36!=n.keyCode&&36!=n.which&&"Home"!=n.code&&"Home"!=n.key&&13!=n.keyCode&&13!=n.which&&"Enter"!=n.code&&"Enter"!=n.key&&"NumpadEnter"!=n.code||(e.scrollLeft=0),TLN.update_line_numbers(e,t)}}(t,n);for(let n=l.length-1;n>=0;n--)t.addEventListener(l[n],o),TLN.eventList[e].push({evt:l[n],hdlr:o});const r=["change","mousewheel","scroll"],s=function(e,t){return function(){t.scrollTop=e.scrollTop}}(t,n);for(let n=r.length-1;n>=0;n--)t.addEventListener(r[n],s),TLN.eventList[e].push({evt:r[n],hdlr:s})},remove_line_numbers:function(e){const t=document.getElementById(e);if(null==t)return console.warn("[tln.js] Couldn't find textarea of id '"+e+"'");if(-1==t.className.indexOf("tln-active"))return console.warn("[tln.js] textarea of id '"+e+"' isn't numbered");t.classList.remove("tln-active");const n=t.previousSibling;if("tln-wrapper"==n.className&&n.remove(),TLN.eventList[e]){for(let n=TLN.eventList[e].length-1;n>=0;n--){const l=TLN.eventList[e][n];t.removeEventListener(l.evt,l.hdlr)}delete TLN.eventList[e]}}};</script>
+    </head>
+    <body>
+        <H1>Processing Script</H1>
+        <a href="/">Home</a><br><br>
+        Status: <span id="scriptstate">Unknown</span> 
+        <span id="errormessage" style="display:none;"></span>
+        <div id="scriptstats" style="display:none;">
+          Times (ms) - 
+          Mean: <span id="meantime"></span>
+          Max: <span id="maxtime"></span>
+          Min: <span id="mintime"></span>
+          StdDev: <span id="stddevtime"></span>
+        </div>
+        
+        <div id="wrapper">Loading...</div>
+        <br>
+        <button id="save" style="display:none;" onclick="saveScript();">Save</button>
+        <script>
+          function initialLoad() {
+            $.get('/processing_script', function(response){
+              $textarea = $("<textarea>").attr('id', 'processingscript').attr('spellcheck', 'false').val(response);
+              
+              $('div#wrapper').html('').append($textarea);
+              $('button#save').show();
+              
+              TLN.append_line_numbers('processingscript');
+              wrapper.style.width='1000px';
+              wrapper.style.height='650px';
+              
+              $(document).delegate('#processingscript', 'keydown', function(e) {
+                var keyCode = e.keyCode || e.which;
+              
+                if (keyCode == 9) {
+                  e.preventDefault();
+                  var start = this.selectionStart;
+                  var end = this.selectionEnd;
+              
+                  // set textarea value to: text before caret + tab + text after caret
+                  $(this).val($(this).val().substring(0, start)
+                              + "\t"
+                              + $(this).val().substring(end));
+              
+                  // put caret at right position again
+                  this.selectionStart =
+                  this.selectionEnd = start + 1;
+                }
+              });
+              
+              loadStatus();
+            });
+          }
+          
+          function saveScript() {
+            postInfo = {};
+             
+            postInfo['script'] = $('div#wrapper textarea').val();
+            
+            $.ajax({
+              url: "/processing_save",
+              type: 'POST',
+              data: postInfo,
+              success: function(data) {
+                window.location = "/processing";
+              }
+            });
+          }
+          
+          function loadStatus() {
+            $.get('/processing_stats', function(response){
+              if (response.state == true)
+              {
+                $('span#scriptstate').html('Good').addClass("good").removeClass('bad');
+                
+                $('span#meantime').html(response.mean);
+                $('span#maxtime').html(response.max);
+                $('span#mintime').html(response.min);
+                $('span#stddevtime').html(response.stddev);
+                
+                $('div#scriptstats').show();
+                $('span#errormessage').hide();
+              }
+              else
+              {
+                $('span#scriptstate').html('Bad').addClass("bad").removeClass('good');
+                $('div#scriptstats').hide();
+                $('span#errormessage').show().html(response.errorstring);
+              }
+            });
+          }
+          
+          initialLoad();
+          setInterval('loadStatus()', 5000);
+        </script>
+    </body>
+</html>

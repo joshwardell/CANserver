@@ -70,7 +70,8 @@ const analysis_load_json = {
         factor: 0.01,
         signalOffset: 0,
         isSigned: false,
-        byteOrder: true
+        byteOrder: true,
+        builtIn: true
     },
     TestAmps: {
         frameid: 306,

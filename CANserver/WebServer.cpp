@@ -4,6 +4,7 @@
 #include <esp_wifi.h>
 #include <ESPAsyncWebServer.h>
 #include <SPIFFS.h>
+#include <Average.h>
 
 #include <iostream>
 #include <iomanip>
@@ -20,11 +21,11 @@
 
 
 #include "DisplayState.h"
-#include "VehicleState.h"
 #include "SDCard.h"
 #include "CanBus.h"
 #include "Network.h"
 #include "Logging.h"
+#include "LUAProcessor.h"
 
 #include "ginger.h"
 
@@ -47,14 +48,20 @@ namespace CANServer
 {
     namespace WebServer
     {
-        void _populateTemplateVaraibles(ginger::temple *vars);
+
+        CANServer::CanBus::AnalysisItemMap::const_iterator analysisLoadIterator;
+        uint8_t analysisLoadOutputState = 0;
+        bool analysisLoadInitialOutput = false;
+        bool analysisLoadFinalOutput = false;
+
+        void _populateTemplateVaraibles(ginger::temple *vars, CANServer::DisplayState *display);
 
         void _renderDisplay(AsyncWebServerRequest *request, DisplayState* display)
         {
-            if (CANServer::VehicleState::instance()->DisplayOn)
+            if (CANServer::CanBus::instance()->DisplayOnAnalysisItem()->lastValue == 1)
             {
                 ginger::temple t;
-                CANServer::WebServer::_populateTemplateVaraibles(&t);
+                CANServer::WebServer::_populateTemplateVaraibles(&t, display);
                 
                 try {
                     std::stringstream ss;
@@ -236,98 +243,23 @@ namespace CANServer
                 request->send(SPIFFS, "/html/debug.html");
             });
 
-            server.on("/debug_save", HTTP_POST, [](AsyncWebServerRequest * request) {
-                //Handle any incomming post vars and update the vehicle state as required
-
-                if(request->hasParam("key", true) && request->hasParam("value", true))
-                {
-                    AsyncWebParameter* keyParam = request->getParam("key", true);
-                    AsyncWebParameter* valParam = request->getParam("value", true);
-
-                    CANServer::VehicleState *vehicleStateInstance = CANServer::VehicleState::instance();
-                    ASSIGN_HELPER(BattVolts)
-                    ASSIGN_HELPER(BattAmps)
-
-                    if (keyParam->value() == "BattVolts")
-                    {
-                        vehicleStateInstance->BattVolts = atoi(valParam->value().c_str());
-
-                        vehicleStateInstance->BattPower = vehicleStateInstance->BattVolts * vehicleStateInstance->BattAmps / 100;
-                    }
-
-                    if (keyParam->value() == "BattAmps")
-                    {
-                        vehicleStateInstance->BattAmps = atoi(valParam->value().c_str());
-
-                        vehicleStateInstance->BattPower = vehicleStateInstance->BattVolts * vehicleStateInstance->BattAmps / 100;
-                    }
-                    
-                    if (keyParam->value() == "RearTorque")
-                    {
-                        vehicleStateInstance->RearTorque = atoi(valParam->value().c_str());
-                    }
-
-                    ASSIGN_HELPER(FrontTorque)
-                    ASSIGN_HELPER(MinBattTemp)
-                    ASSIGN_HELPER(BattCoolantRate)
-                    ASSIGN_HELPER(PTCoolantRate)
-                    ASSIGN_HELPER(MaxRegen)
-                    ASSIGN_HELPER(MaxDisChg)
-                    ASSIGN_HELPER(VehSpeed)
-                    ASSIGN_HELPER(SpeedUnit)
-                    ASSIGN_HELPER(v12v261)
-                    ASSIGN_HELPER(BattCoolantTemp)
-                    ASSIGN_HELPER(PTCoolantTemp)
-                    ASSIGN_HELPER(BattRemainKWh)
-                    ASSIGN_HELPER(BattFullKWh)
-                    ASSIGN_HELPER(InvHStemp376)
-                    ASSIGN_HELPER(BSR)
-                    ASSIGN_HELPER(BSL)
-                    ASSIGN_HELPER(DisplayOn)
-                    
-                    request->send(200);
-                }
-                else
-                {
-                    request->send(404);
-                }
-            });
-
             server.on("/debug_update", HTTP_GET, [](AsyncWebServerRequest *request) {
                 AsyncJsonResponse * response = new AsyncJsonResponse();
                 JsonVariant& doc = response->getRoot();
-
-                JsonObject vehiclestatus = doc.createNestedObject("vehiclestatus");
-
-                CANServer::VehicleState *vehicleStateInstance = CANServer::VehicleState::instance();
-                FETCH_HELPER(BattVolts)
-                FETCH_HELPER(BattAmps)
-                FETCH_HELPER(RearTorque)
-                FETCH_HELPER(FrontTorque)
-                FETCH_HELPER(MinBattTemp)
-                FETCH_HELPER(BattCoolantRate)
-                FETCH_HELPER(PTCoolantRate)
-                FETCH_HELPER(MaxRegen)
-                FETCH_HELPER(MaxDisChg)
-                FETCH_HELPER(VehSpeed)
-                FETCH_HELPER(SpeedUnit)
-                FETCH_HELPER(v12v261)
-                FETCH_HELPER(BattCoolantTemp)
-                FETCH_HELPER(PTCoolantTemp)
-                FETCH_HELPER(BattRemainKWh)
-                FETCH_HELPER(BattFullKWh)
-                FETCH_HELPER(InvHStemp376)
-                FETCH_HELPER(BSR)
-                FETCH_HELPER(BSL)
-                FETCH_HELPER(DisplayOn)
 
                 JsonObject dynamicanalysisitems = doc.createNestedObject("dynamicanalysisitems");
                 for (CANServer::CanBus::AnalysisItemMap::const_iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->begin(); it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end(); it++)
                 {
                     CANServer::CanBus::AnalysisItem *analysisItem = it->second;
-                    dynamicanalysisitems[it->first] = analysisItem->_lastValue;
+                    dynamicanalysisitems[it->first] = analysisItem->lastValue;
                 }
-                
+
+                JsonObject processeditems = doc.createNestedObject("processeditems");
+                for (CANServer::LUAProcessor::ProcessedItemMap::const_iterator it = CANServer::LUAProcessor::instance()->processedItems()->begin(); it != CANServer::LUAProcessor::instance()->processedItems()->end(); it++)
+                {
+                    processeditems[it->first] = it->second;
+                }
+
                 response->setLength();
                 request->send(response);
             });    
@@ -367,7 +299,6 @@ detailsNode["filesize"] = logginginstance->fileSize(logtype);\
 
                 response->setLength();
                 request->send(response);
-
             });     
 
             server.on("/log_download", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -482,18 +413,35 @@ else\
                 if(request->hasParam("name", true))
                 {
                     std::string itemName = request->getParam("name", true)->value().c_str();
+                    bool didDelete = false;
 
-                    CANServer::CanBus::instance()->pauseDynamicAnalysis();
+                    CANServer::CanBus *canbusInstance = CANServer::CanBus::instance();
+
+                    canbusInstance->pauseDynamicAnalysis();
                    
-                    CANServer::CanBus::AnalysisItemMap::iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->find(itemName);
-                    if (it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end())
+                    CANServer::CanBus::AnalysisItemMap::iterator it = canbusInstance->dynamicAnalysisItems()->find(itemName);
+                    if (it != canbusInstance->dynamicAnalysisItems()->end())
                     {
-                        delete it->second;
-                        CANServer::CanBus::instance()->dynamicAnalysisItems()->erase(itemName);
+                        if (it->second->builtIn)
+                        {
+                            //Deleting built in items is not allowed
+                        }
+                        else
+                        {
+                            delete it->second;
+                            canbusInstance->dynamicAnalysisItems()->erase(itemName.c_str());
+                            didDelete = true;
+                        }
                     }                        
                     
-                    CANServer::CanBus::instance()->saveDynamicAnalysisConfiguration();
-                    CANServer::CanBus::instance()->resumeDynamicAnalysis();
+                    if (didDelete)
+                    {
+                        //Clean up the file for this item
+                        canbusInstance->deleteDynamicAnalysisFile(itemName.c_str());
+
+                        canbusInstance->resolveLookups();
+                    }
+                    canbusInstance->resumeDynamicAnalysis();
 
                     request->send(200); 
                 }
@@ -504,8 +452,7 @@ else\
             });
              
 
-            server.on("/analysis_save", HTTP_POST, [](AsyncWebServerRequest * request) {
-                
+            server.on("/analysis_save", HTTP_POST, [](AsyncWebServerRequest * request) {                
 /*
 state: update
 name: TestVolts
@@ -528,48 +475,55 @@ littleendian: true
                     std::string itemName = request->getParam("name", true)->value().c_str();
 
                     CANServer::CanBus::AnalysisItem *analysisItem = new CANServer::CanBus::AnalysisItem();
-                    analysisItem->_frameId = atoi(request->getParam("frameid", true)->value().c_str());
-                    analysisItem->_startBit = atoi(request->getParam("startbit", true)->value().c_str());
-                    analysisItem->_bitLength = atoi(request->getParam("bitlength", true)->value().c_str());
-                    analysisItem->_factor = atof(request->getParam("factor", true)->value().c_str());
-                    analysisItem->_signalOffset = atoi(request->getParam("signaloffset", true)->value().c_str());
+                    analysisItem->frameId = atoi(request->getParam("frameid", true)->value().c_str());
+                    analysisItem->startBit = atoi(request->getParam("startbit", true)->value().c_str());
+                    analysisItem->bitLength = atoi(request->getParam("bitlength", true)->value().c_str());
+                    analysisItem->factor = atof(request->getParam("factor", true)->value().c_str());
+                    analysisItem->signalOffset = atoi(request->getParam("signaloffset", true)->value().c_str());
 
                     if (request->hasParam("issigned", true) && request->getParam("issigned", true)->value() == "true")
                     {
-                        analysisItem->_isSigned = true;
+                        analysisItem->isSigned = true;
                     }
                     else
                     {
-                        analysisItem->_isSigned = false;
+                        analysisItem->isSigned = false;
                     }
 
                     if (request->hasParam("littleendian", true) && request->getParam("littleendian", true)->value() == "true")
                     {
-                        analysisItem->_byteOrder = true;
+                        analysisItem->byteOrder = true;
                     }
                     else
                     {
-                        analysisItem->_byteOrder = true;
+                        analysisItem->byteOrder = true;
                     }
 
+                    //Pause running of the items so we can modify them
+                    CANServer::CanBus *canbusInstance = CANServer::CanBus::instance();
+                    canbusInstance->pauseDynamicAnalysis();
 
-                    CANServer::CanBus::instance()->pauseDynamicAnalysis();
                     if(request->hasParam("state", true) && request->getParam("state", true)->value() == "update")
                     {
                         //Clean up the old entry so we can replace it
-                        CANServer::CanBus::AnalysisItemMap::iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->find(itemName);
-                        if (it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end())
+                        CANServer::CanBus::AnalysisItemMap::iterator it = canbusInstance->dynamicAnalysisItems()->find(itemName);
+                        if (it != canbusInstance->dynamicAnalysisItems()->end())
                         {
                             delete it->second;
-                            CANServer::CanBus::instance()->dynamicAnalysisItems()->erase(itemName);
+                            canbusInstance->dynamicAnalysisItems()->erase(itemName);
                         }                        
                     }
 
                     //insert our new entry
-                    CANServer::CanBus::instance()->dynamicAnalysisItems()->insert(CANServer::CanBus::AnalysisItemPair(itemName, analysisItem));
+                    canbusInstance->dynamicAnalysisItems()->insert(CANServer::CanBus::AnalysisItemPair(itemName, analysisItem));
 
-                    CANServer::CanBus::instance()->saveDynamicAnalysisConfiguration();
-                    CANServer::CanBus::instance()->resumeDynamicAnalysis();
+                    canbusInstance->resolveLookups();
+
+                    //Start processing back up again
+                    canbusInstance->resumeDynamicAnalysis();
+
+                    //Save off the config file for this item
+                    canbusInstance->saveDynamicAnalysisFile(itemName.c_str());
                 }
                 else
                 {
@@ -581,25 +535,124 @@ littleendian: true
             });
 
             server.on("/analysis_load", HTTP_GET, [](AsyncWebServerRequest *request) {
-                AsyncJsonResponse * response = new AsyncJsonResponse();
-                JsonVariant& doc = response->getRoot();
+                //Since the json returned for this call can get quite large we have to get creative about how we return it
+                //We used chunked responses and build the json up slowly (in small chunks of memory so as not to make the esp work too hard)
 
-                
-                for (CANServer::CanBus::AnalysisItemMap::const_iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->begin(); it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end(); it++)
+                analysisLoadIterator = CANServer::CanBus::instance()->dynamicAnalysisItems()->begin();
+                analysisLoadOutputState = 0;
+                analysisLoadInitialOutput = false;
+                analysisLoadFinalOutput = false;
+
+                AsyncWebServerResponse* response = request->beginChunkedResponse("application/json", [](uint8_t* buffer_, size_t maxLen, size_t index)
                 {
-                    JsonObject dynamicanalysisitem = doc.createNestedObject(it->first);
-                    CANServer::CanBus::AnalysisItem *analysisItem = it->second;
+                    char* buffer = (char*)buffer_;
+                    maxLen = maxLen >> 1;
+                    size_t len = 0;
 
-                    dynamicanalysisitem["frameid"] = analysisItem->_frameId;
-                    dynamicanalysisitem["startBit"] = analysisItem->_startBit;
-                    dynamicanalysisitem["bitLength"] = analysisItem->_bitLength;
-                    dynamicanalysisitem["factor"] = analysisItem->_factor;
-                    dynamicanalysisitem["signalOffset"] = analysisItem->_signalOffset;
-                    dynamicanalysisitem["isSigned"] = analysisItem->_isSigned;
-                    dynamicanalysisitem["byteOrder"] = analysisItem->_byteOrder;
-                }
+                    if (!analysisLoadInitialOutput)
+                    {
+                        len += sprintf(buffer, "{");
+                        analysisLoadInitialOutput = true;
 
-                response->setLength();
+                        return len;
+                    }
+
+                    if (analysisLoadIterator != CANServer::CanBus::instance()->dynamicAnalysisItems()->end())
+                    {
+                        switch(analysisLoadOutputState)
+                        {
+                            case 0:
+                            {
+                                const char *firstChar = "";
+                                if (analysisLoadIterator != CANServer::CanBus::instance()->dynamicAnalysisItems()->begin())
+                                {
+                                    firstChar = ",";
+                                }
+                                //Output the item name
+                                len += sprintf(buffer, "%s\"%s\":{", firstChar, analysisLoadIterator->first.c_str());
+                                analysisLoadOutputState++;
+                                break;
+                            }
+                            case 1:
+                            {
+                                //Frame ID
+                                len += sprintf(buffer, "\"frameid\":%d,", analysisLoadIterator->second->frameId);
+                                analysisLoadOutputState++;
+                                break;
+                            }
+                            case 2:
+                            {
+                                //Start Bit
+                                len += sprintf(buffer, "\"startBit\":%d,", analysisLoadIterator->second->startBit);
+                                analysisLoadOutputState++;
+                                break;
+                            }
+                            case 3:
+                            {
+                                //Bit Length
+                                len += sprintf(buffer, "\"bitLength\":%d,", analysisLoadIterator->second->bitLength);
+                                analysisLoadOutputState++;
+                                break;
+                            }
+                            case 4:
+                            {
+                                //Factor
+                                len += sprintf(buffer, "\"factor\":%0.4f,", analysisLoadIterator->second->factor);
+                                analysisLoadOutputState++;
+                                break;
+                            }
+                            case 5:
+                            {
+                                //Signal Offset
+                                len += sprintf(buffer, "\"signalOffset\":%d,", analysisLoadIterator->second->signalOffset);
+                                analysisLoadOutputState++;
+                                break;
+                            }
+                            case 6:
+                            {
+                                //Is Signed
+                                len += sprintf(buffer, "\"isSigned\":%s,", analysisLoadIterator->second->isSigned ? "true" : "false");
+                                analysisLoadOutputState++;
+                                break;
+                            }
+                            case 7:
+                            {
+                                //Byte Order
+                                len += sprintf(buffer, "\"byteOrder\":%s,", analysisLoadIterator->second->byteOrder ? "true" : "false");
+                                analysisLoadOutputState++;
+                                break;
+                            }
+                            case 8:
+                            {
+                                //Built In
+                                len += sprintf(buffer, "\"builtIn\":%s", analysisLoadIterator->second->builtIn ? "true" : "false");
+                                analysisLoadOutputState++;
+                                break;
+                            }
+                            case 9:
+                            {
+                                //Close off the item
+                                len += sprintf(buffer, "}");
+
+                                //Move on to the next item
+                                analysisLoadOutputState = 0;
+                                analysisLoadIterator++;
+                                break; 
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (!analysisLoadFinalOutput)
+                        {
+                            len += sprintf(buffer, "}");
+                            analysisLoadFinalOutput = true;
+                        }
+                    }
+
+                    return len;
+                });
+                    
                 request->send(response);
             }); 
 
@@ -610,7 +663,7 @@ littleendian: true
                 for (CANServer::CanBus::AnalysisItemMap::const_iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->begin(); it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end(); it++)
                 {
                     CANServer::CanBus::AnalysisItem *analysisItem = it->second;
-                    doc[it->first] = analysisItem->_lastValue;
+                    doc[it->first] = analysisItem->lastValue;
                 }
 
                 response->setLength();
@@ -619,7 +672,48 @@ littleendian: true
 
 
 
+            server.on("/processing", HTTP_GET, [](AsyncWebServerRequest *request) {
+                request->send(SPIFFS, "/html/processing.html");
+            });
 
+            server.on("/processing_stats", HTTP_GET, [](AsyncWebServerRequest *request) {
+                AsyncJsonResponse * response = new AsyncJsonResponse();
+                JsonVariant& doc = response->getRoot();
+
+                CANServer::LUAProcessor *processorInstance = CANServer::LUAProcessor::instance();
+
+                doc["state"] = !processorInstance->scriptError();
+                doc["errorstring"] = processorInstance->errorString();
+
+                Average<uint16_t>* processingTime = processorInstance->processingTime();
+                doc["mean"] = processingTime->mean();
+                doc["mode"] = processingTime->mode();
+                doc["max"] = processingTime->maximum();
+                doc["min"] = processingTime->minimum();
+                doc["stddev"] = processingTime->stddev();
+                
+                response->setLength();
+                request->send(response);
+            });
+
+
+            server.on("/processing_script", HTTP_GET, [](AsyncWebServerRequest *request) {
+                request->send(SPIFFS, "/processing/script.lua", "text/plain");
+            });
+
+            server.on("/processing_save", HTTP_POST, [](AsyncWebServerRequest *request) {
+                if(request->hasParam("script", true))
+                {
+                    CANServer::LUAProcessor::instance()->saveNewScript(request->getParam("script", true)->value().c_str());
+                    CANServer::LUAProcessor::instance()->reloadScript();
+
+                    request->send(200);
+                    return;
+                }
+
+                request->send(404);
+                return;
+            });
 
 
             server.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -683,34 +777,10 @@ littleendian: true
 #define POPULATEHELPER(name, multiplier) {\
 (*vars)[#name] = vehicleStateInstance->name * multiplier;\
 }
-        void _populateTemplateVaraibles(ginger::temple *vars)
+        void _populateTemplateVaraibles(ginger::temple *vars, CANServer::DisplayState *display)
         {
-            CANServer::VehicleState *vehicleStateInstance = CANServer::VehicleState::instance();
-
-            //Deal with our statically analysised items
-            POPULATEHELPER(BattPower, 1);
-            POPULATEHELPER(BattVolts, 10)
-            POPULATEHELPER(BattAmps, 10)
-            POPULATEHELPER(RearTorque, 10)
-            POPULATEHELPER(FrontTorque, 10)
-            POPULATEHELPER(MinBattTemp, 10)
-            POPULATEHELPER(BattCoolantRate, 10)
-            POPULATEHELPER(PTCoolantRate, 10)
-            POPULATEHELPER(MaxRegen, 10)
-            POPULATEHELPER(MaxDisChg, 10)
-            
-            if (vehicleStateInstance->SpeedUnit == 1) 
-            { 
-                //MPH
-                (*vars)["VehSpeed"] = int(0.621371 * vehicleStateInstance->VehSpeed * 10);
-            } 
-            else 
-            {
-                //KMH
-                (*vars)["VehSpeed"] = vehicleStateInstance->VehSpeed * 10;
-            }
-
-            if (vehicleStateInstance->SpeedUnit == 1) 
+            //Deal with the speed unit and ouptut the legend string needed
+            if (CANServer::CanBus::instance()->DistanceUnitMilesAnalysisItem()->lastValue == 1) 
             { 
                 //MPH
                 (*vars)["SpeedUnitString"] = "HPM";
@@ -721,27 +791,17 @@ littleendian: true
                 (*vars)["SpeedUnitString"] = "HPK";
             }
 
-            POPULATEHELPER(SpeedUnit, 1)
-            POPULATEHELPER(v12v261, 10)
-            POPULATEHELPER(BattCoolantTemp, 10)
-            POPULATEHELPER(PTCoolantTemp, 10)
-            POPULATEHELPER(BattRemainKWh, 10)
-            POPULATEHELPER(BattFullKWh, 10)
-            POPULATEHELPER(InvHStemp376, 10)
-            POPULATEHELPER(BSR, 1)
-            POPULATEHELPER(BSL, 1)
-            POPULATEHELPER(DisplayOn, 1)
-
-            //Some scaled vars that are used by the default bargraph display
-            (*vars)["BattPower_Scaled_Bar"] = int(0.008 * vehicleStateInstance->BattPower);
-            (*vars)["RearTorque_Scaled_Bar"] = int(0.006 * vehicleStateInstance->RearTorque);
-
-
-            //Deal with our dynamically analysised items
+            //Deal with our dynamically analysized items
             for (CANServer::CanBus::AnalysisItemMap::const_iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->begin(); it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end(); it++)
             {
                 CANServer::CanBus::AnalysisItem *analysisItem = it->second;
-                (*vars)[it->first] = analysisItem->_lastValue * 10;
+                (*vars)[it->first] = int(analysisItem->lastValue * 10);
+            }
+
+            //Deal with out processed items (they come last as they can override the dynamic items)
+            for (CANServer::LUAProcessor::ProcessedItemMap::const_iterator it = CANServer::LUAProcessor::instance()->processedItems()->begin(); it != CANServer::LUAProcessor::instance()->processedItems()->end(); it++)
+            {
+                (*vars)[it->first] = int(it->second * 10);
             }
         }
     }

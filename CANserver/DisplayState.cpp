@@ -1,5 +1,4 @@
 #include "DisplayState.h"
-#include "VehicleState.h"
 
 #include <SPIFFS.h>
 
@@ -84,6 +83,7 @@ void CANServer::DisplayState::save()
         file.close();
     }
 }
+
 
 const char* CANServer::DisplayState::displayString() const 
 {
