@@ -5,6 +5,6 @@
     "bl": 16,
     "f": -0.1,
     "so": 0,
-    "s": false,
+    "s": true,
     "bo": true
 }

@@ -20,14 +20,12 @@
 #include <SD.h>
 
 
-#include "DisplayState.h"
 #include "SDCard.h"
 #include "CanBus.h"
 #include "Network.h"
 #include "Logging.h"
 #include "LUAProcessor.h"
-
-#include "ginger.h"
+#include "Displays.h"
 
 #define ASSIGN_HELPER(keyname) if (keyParam->value() == #keyname)\
                     {\
@@ -54,31 +52,22 @@ namespace CANServer
         bool analysisLoadInitialOutput = false;
         bool analysisLoadFinalOutput = false;
 
-        void _populateTemplateVaraibles(ginger::temple *vars, CANServer::DisplayState *display);
-
-        void _renderDisplay(AsyncWebServerRequest *request, DisplayState* display)
+        /*void _renderDisplay(AsyncWebServerRequest *request, DisplayState* display)
         {
             if (CANServer::CanBus::instance()->DisplayOnAnalysisItem()->lastValue == 1)
-            {
-                ginger::temple t;
-                CANServer::WebServer::_populateTemplateVaraibles(&t, display);
-                
-                try {
-                    std::stringstream ss;
-                    ginger::parse(display->displayString(), t, ginger::from_ios(ss));
+            {                
+                std::stringstream ss;
+                ss << "a";
+                    
+                request->send(200, "text/plain", ss.str().c_str());
 
-                    request->send(200, "text/plain", ss.str().c_str());
-
-                } catch (ginger::parse_error& error) {
-                    //Serial.println(error.long_error().c_str());
-                    request->send(200, "text/plain", "1m2s DISPLAY  ERROR  t500r");
-                }
+//                    request->send(200, "text/plain", "1m2s DISPLAY  ERROR  t500r");
             }
             else
             {
                 request->send(200, "text/plain", CANServer::DisplayState::offDisplayString());
             }
-        }
+        }*/
 
         void setup()
         {
@@ -99,57 +88,86 @@ namespace CANServer
 
 
             //Display configuration related url handling
-            server.on("/config", HTTP_GET, [](AsyncWebServerRequest *request){
-                request->send(SPIFFS, "/html/config.html");
+            server.on("/displays", HTTP_GET, [](AsyncWebServerRequest *request){
+                request->send(SPIFFS, "/html/displays.html");
             });
 
-            server.on("/config_save", HTTP_POST, [](AsyncWebServerRequest * request) {
+            server.on("/display_load", HTTP_GET, [](AsyncWebServerRequest *request) {
                 
-                if(request->hasParam("disp0", true))
+                if(request->hasParam("dispId", false))
                 {
-                    AsyncWebParameter* newValue = request->getParam("disp0", true);
-                    CANServer::DisplayState::display0->updateDisplayString(newValue->value().c_str());
-                    CANServer::DisplayState::display0->save();
-                }
+                    uint8_t displayId = atoi(request->getParam("dispId", false)->value().c_str());
+                    if (displayId > 3 || displayId < 0)
+                    {
+                        request->send(404);
+                        return;
+                    }
 
-                if(request->hasParam("disp1", true))
+                    request->send(SPIFFS, CANServer::Displays::instance()->filenameForDisplay(displayId));
+                }
+                else
                 {
-                    AsyncWebParameter* newValue = request->getParam("disp1", true);
-                    CANServer::DisplayState::display1->updateDisplayString(newValue->value().c_str());
-                    CANServer::DisplayState::display1->save();
+                    request->send(404);
                 }
-
-                if(request->hasParam("disp2", true))
-                {
-                    AsyncWebParameter* newValue = request->getParam("disp2", true);
-                    CANServer::DisplayState::display2->updateDisplayString(newValue->value().c_str());
-                    CANServer::DisplayState::display2->save();
-                }
-
-                if(request->hasParam("disp3", true))
-                {
-                    AsyncWebParameter* newValue = request->getParam("disp3", true);
-                    CANServer::DisplayState::display3->updateDisplayString(newValue->value().c_str());
-                    CANServer::DisplayState::display3->save();
-                }
-
-                request->redirect("/config");
-            });
-
-            server.on("/config_update", HTTP_GET, [](AsyncWebServerRequest *request) {
-                AsyncJsonResponse * response = new AsyncJsonResponse();
-                JsonVariant& doc = response->getRoot();
-
-                JsonObject displaysettings = doc.createNestedObject("displaysettings");
-                
-                displaysettings["disp0"] = CANServer::DisplayState::display0->displayString();
-                displaysettings["disp1"] = CANServer::DisplayState::display1->displayString();
-                displaysettings["disp2"] = CANServer::DisplayState::display2->displayString();
-                displaysettings["disp3"] = CANServer::DisplayState::display3->displayString();
-                
-                response->setLength();
-                request->send(response);
             }); 
+
+            server.on("/display_stats", HTTP_GET, [](AsyncWebServerRequest *request) {
+                if(request->hasParam("dispId", false))
+                {
+                    uint8_t displayId = atoi(request->getParam("dispId", false)->value().c_str());
+                    if (displayId > 3 || displayId < 0)
+                    {
+                        request->send(404);
+                        return;
+                    }
+
+                    AsyncJsonResponse * response = new AsyncJsonResponse();
+                    JsonVariant& doc = response->getRoot();
+
+                    CANServer::Displays *displaysInstance = CANServer::Displays::instance();
+
+                    doc["state"] = !displaysInstance->scriptErrorForDisplay(displayId);
+                    doc["errorstring"] = displaysInstance->errorStringForDisplay(displayId);
+
+                    Average<uint16_t>* processingTime = displaysInstance->processingTimeForDisplay(displayId);
+                    doc["mean"] = processingTime->mean();
+                    doc["mode"] = processingTime->mode();
+                    doc["max"] = processingTime->maximum();
+                    doc["min"] = processingTime->minimum();
+                    doc["stddev"] = processingTime->stddev();
+                    
+                    response->setLength();
+                    request->send(response);
+                }
+                else
+                {
+                    request->send(404);
+                }
+            }); 
+
+            server.on("/display_save", HTTP_POST, [](AsyncWebServerRequest *request) {
+                if(request->hasParam("script", true) && request->hasParam("dispId", true))
+                {
+                    uint8_t displayId = atoi(request->getParam("dispId", true)->value().c_str());
+                    if (displayId > 3 || displayId < 0)
+                    {
+                        request->send(404);
+                        return;
+                    }
+
+                    CANServer::Displays::instance()->saveScriptForDisplay(displayId, request->getParam("script", true)->value().c_str());
+                    CANServer::Displays::instance()->loadScriptForDisplay(displayId);
+
+                    request->send(200);
+                    return;
+                }
+
+                request->send(404);
+                return;
+            });
+
+
+
 
             //Network configuration related url handling
             server.on("/network", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -671,7 +689,6 @@ littleendian: true
             }); 
 
 
-
             server.on("/processing", HTTP_GET, [](AsyncWebServerRequest *request) {
                 request->send(SPIFFS, "/html/processing.html");
             });
@@ -705,7 +722,7 @@ littleendian: true
                 if(request->hasParam("script", true))
                 {
                     CANServer::LUAProcessor::instance()->saveNewScript(request->getParam("script", true)->value().c_str());
-                    CANServer::LUAProcessor::instance()->reloadScript();
+                    CANServer::LUAProcessor::instance()->loadScript();
 
                     request->send(200);
                     return;
@@ -724,36 +741,32 @@ littleendian: true
             //Display related URL handling
             // set up servers for displays            
             server.on("/disp0", HTTP_GET, [](AsyncWebServerRequest *request){
-                _renderDisplay(request, CANServer::DisplayState::display0);
+                request->send(200, "text/plain", CANServer::Displays::instance()->renderDisplay(0));
             });
 
             server.on("/disp1", HTTP_GET, [](AsyncWebServerRequest *request){
-                _renderDisplay(request, CANServer::DisplayState::display1);
+                request->send(200, "text/plain", CANServer::Displays::instance()->renderDisplay(1));
             });
 
             server.on("/disp2", HTTP_GET, [](AsyncWebServerRequest *request){
-                _renderDisplay(request, CANServer::DisplayState::display2);
+                request->send(200, "text/plain", CANServer::Displays::instance()->renderDisplay(2));
             });
 
             server.on("/disp3", HTTP_GET, [](AsyncWebServerRequest *request){
-                _renderDisplay(request, CANServer::DisplayState::display3);
+                request->send(200, "text/plain", CANServer::Displays::instance()->renderDisplay(3));
             });
 
             //receive posts of display buttons, TODO do something with the buttons
-            server.on("/post0", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL,
-                    [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
+            server.on("/post0", HTTP_POST, [](AsyncWebServerRequest * request) {
                 request->send(200);
             });
-            server.on("/post1", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL,
-                    [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
+            server.on("/post1", HTTP_POST, [](AsyncWebServerRequest * request) {
                 request->send(200);
             });
-            server.on("/post2", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL,
-                    [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
+            server.on("/post2", HTTP_POST, [](AsyncWebServerRequest * request) {
                 request->send(200);
             });
-            server.on("/post3", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL,
-                    [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
+            server.on("/post3", HTTP_POST, [](AsyncWebServerRequest * request) {
                 request->send(200);
             });
             
@@ -766,43 +779,22 @@ littleendian: true
                 request->send(response);
             });
 
+            server.on("/js/app.js", HTTP_GET,  [](AsyncWebServerRequest *request){
+                AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/js/app.js", "application/javascript");
+                //response->addHeader("Cache-Control", "max-age=600");
+                request->send(response);
+            });
 
+            server.on("/css/app.css", HTTP_GET,  [](AsyncWebServerRequest *request){
+                AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/css/app.css", "text/css");
+                //response->addHeader("Cache-Control", "max-age=600");
+                request->send(response);
+            });
 
             // Start server
             server.begin();
 
             Serial.println("Done");
-        }
-
-#define POPULATEHELPER(name, multiplier) {\
-(*vars)[#name] = vehicleStateInstance->name * multiplier;\
-}
-        void _populateTemplateVaraibles(ginger::temple *vars, CANServer::DisplayState *display)
-        {
-            //Deal with the speed unit and ouptut the legend string needed
-            if (CANServer::CanBus::instance()->DistanceUnitMilesAnalysisItem()->lastValue == 1) 
-            { 
-                //MPH
-                (*vars)["SpeedUnitString"] = "HPM";
-            } 
-            else 
-            {
-                //KPH
-                (*vars)["SpeedUnitString"] = "HPK";
-            }
-
-            //Deal with our dynamically analysized items
-            for (CANServer::CanBus::AnalysisItemMap::const_iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->begin(); it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end(); it++)
-            {
-                CANServer::CanBus::AnalysisItem *analysisItem = it->second;
-                (*vars)[it->first] = int(analysisItem->lastValue * 10);
-            }
-
-            //Deal with out processed items (they come last as they can override the dynamic items)
-            for (CANServer::LUAProcessor::ProcessedItemMap::const_iterator it = CANServer::LUAProcessor::instance()->processedItems()->begin(); it != CANServer::LUAProcessor::instance()->processedItems()->end(); it++)
-            {
-                (*vars)[it->first] = int(it->second * 10);
-            }
         }
     }
 }

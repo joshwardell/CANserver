@@ -1,0 +1,1 @@
+return "1m2s DISPLAY    3   t500r"

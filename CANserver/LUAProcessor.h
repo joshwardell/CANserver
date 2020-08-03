@@ -6,7 +6,6 @@
 #include <map>
 
 
-#define LUA_USE_C89
 #include "lua/lua.hpp"
 
 namespace CANServer 
@@ -19,7 +18,7 @@ namespace CANServer
         void setup();
         void handle();
 
-        void reloadScript();
+        void loadScript();
 
         void saveNewScript(const char* scriptContents);
 

@@ -13,7 +13,7 @@
 #include "SDCard.h"
 #include "CanBus.h"
 #include "SPIFFileSystem.h"
-#include "DisplayState.h"
+#include "Displays.h"
 #include "WebServer.h"
 #include "PandaUDP.h"
 #include "CANUDP.h"
@@ -58,7 +58,7 @@ void setup() {
     //Bring up CAN bus hardware
     CANServer::CanBus::instance()->setup();
 
-    CANServer::DisplayState::loadAll();
+    CANServer::Displays::instance()->setup();
 
     CANServer::LUAProcessor::instance()->setup();
 

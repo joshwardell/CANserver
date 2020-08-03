@@ -1,0 +1,130 @@
+<html>
+    <head>
+        <title>Display Config</title>
+        <script src="/js/zepto.min.js"></script>
+        <script src="/js/app.js"></script>
+        <link rel="icon" href="data:,">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          body {font-family: sans-serif;}
+        
+          select { margin-bottom:5px; }
+        </style>
+        <link rel="stylesheet" type="text/css" href="/css/app.css">
+    </head>
+    <body>
+        <H1>Display Config</H1>
+        <a href="/">Home</a><br><br>
+        <div id="configparams">
+          
+          Display:
+          <select id="displayid" onchange="loadDisplayScript(this.options[this.selectedIndex].value);">
+            <option>0</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+          </select>
+          
+          Status: <span id="scriptstate">Unknown</span> 
+        <span id="errormessage" style="display:none;"></span>
+          <div id="scriptstats" style="display:none;">
+            Times (ms) - 
+            Mean: <span id="meantime"></span>
+            Max: <span id="maxtime"></span>
+            Min: <span id="mintime"></span>
+            StdDev: <span id="stddevtime"></span>
+          </div>
+          
+          <div id="wrapper">
+            <textarea id="displayscript" disabled></textarea>
+          </div>
+          <br>
+          <button id="save" style="display:none;" onclick="saveScript();">Save</button>
+        </div>
+        
+        <script>
+          TLN.append_line_numbers('displayscript');
+          wrapper.style.width='1000px';
+          wrapper.style.height='650px';
+          
+          $(document).delegate('#displayscript', 'keydown', function(e) {
+              var keyCode = e.keyCode || e.which;
+            
+              if (keyCode == 9) {
+                e.preventDefault();
+                var start = this.selectionStart;
+                var end = this.selectionEnd;
+            
+                // set textarea value to: text before caret + tab + text after caret
+                $(this).val($(this).val().substring(0, start)
+                            + "\t"
+                            + $(this).val().substring(end));
+            
+                // put caret at right position again
+                this.selectionStart =
+                this.selectionEnd = start + 1;
+              }
+            });
+          
+          function loadDisplayScript(displayId) {
+            $('button#save').hide();
+            $('textarea#displayscript').attr('disabled', true);
+            $.get('/display_load?dispId=' + displayId, function(response) {
+              $('textarea#displayscript').val(response);
+              $('textarea#displayscript').attr('disabled', null);
+              $('button#save').show();
+              
+              loadStatus();
+            });
+          }
+          
+          function saveScript() {
+            postInfo = {};
+            
+            selectObj = $('select#displayid').get(0);
+            displayId = selectObj.options[selectObj.selectedIndex].value;
+             
+            postInfo['script'] = $('div#wrapper textarea').val();
+            postInfo['dispId'] = displayId;
+            
+            $.ajax({
+              url: "/display_save",
+              type: 'POST',
+              data: postInfo,
+              success: function(data) {
+                loadStatus();
+              }
+            });
+          }
+          
+          function loadStatus() {
+            selectObj = $('select#displayid').get(0);
+            displayId = selectObj.options[selectObj.selectedIndex].value;
+            
+            $.get('/display_stats?dispId=' + displayId, function(response){
+              if (response.state == true)
+              {
+                $('span#scriptstate').html('Good').addClass("good").removeClass('bad');
+                
+                $('span#meantime').html(response.mean);
+                $('span#maxtime').html(response.max);
+                $('span#mintime').html(response.min);
+                $('span#stddevtime').html(response.stddev);
+                
+                $('div#scriptstats').show();
+                $('span#errormessage').hide();
+              }
+              else
+              {
+                $('span#scriptstate').html('Bad').addClass("bad").removeClass('good');
+                $('div#scriptstats').hide();
+                $('span#errormessage').show().html(response.errorstring);
+              }
+            });
+          }
+
+          loadDisplayScript(0);
+          setInterval('loadStatus()', 5000);
+        </script>
+    </body>
+</html>
