@@ -8,8 +8,6 @@
 
 class AsyncUDP;
 
-#define PANDA_SRC_BUS_ID 2
-
 class PandaUDP {
 
 protected:
@@ -25,7 +23,7 @@ protected:
 public:
 
     void begin(uint16_t localPort = 1338);
-    void handleMessage(CAN_FRAME message);
+    void handleMessage(CAN_FRAME message, const uint8_t busId);
 	
 	~PandaUDP();
 };

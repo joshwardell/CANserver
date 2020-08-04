@@ -120,7 +120,7 @@ void CANServer::CanBus::handle()
 void CANServer::CanBus::_processFrame(CAN_FRAME *frame, const uint8_t busId)
 {
     //Pass this message off to a panda client if one is registered
-    panda.handleMessage(*frame);
+    panda.handleMessage(*frame, busId);
 
     //Let the logging code deal with this frame as well
     CANServer::Logging::instance()->handleMessage(frame, busId);

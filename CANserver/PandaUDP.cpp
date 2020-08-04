@@ -70,7 +70,7 @@ void PandaUDP::begin(uint16_t localPort_) {
 
 PandaPacket p;
 volatile bool sendActive = false;
-void PandaUDP::handleMessage(CAN_FRAME message) {
+void PandaUDP::handleMessage(CAN_FRAME message, const uint8_t busId) {
 	// If remote port == 0, then we do not have an active client connected.
   if (remotePort > 0) 
   {
@@ -86,7 +86,7 @@ void PandaUDP::handleMessage(CAN_FRAME message) {
         sendActive = true;
         //Load the packet        
         p.f1 = message.id << 21;
-        p.f2 = (message.length & 0x0F) | (PANDA_SRC_BUS_ID << 4);
+        p.f2 = (message.length & 0x0F) | (busId << 4);
         memcpy(p.data, message.data.byte, message.length);        
 
         //Send to the client
