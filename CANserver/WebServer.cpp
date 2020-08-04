@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 #include <esp_wifi.h>
-#include <ESPAsyncWebServer.h>
+#include "esp_async_webserver/ESPAsyncWebServer.h"
 #include <SPIFFS.h>
 #include <Average.h>
 
@@ -13,10 +13,10 @@
 //The SPIFFS editor taks up a lot of flash space.  For development purposes it is nice to have, but for production it should prob be comented out
 #define INCLUDE_SPIFFS_EDITOR
 #ifdef INCLUDE_SPIFFS_EDITOR
-#include <SPIFFSEditor.h>
+#include "esp_async_webserver/SPIFFSEditor.h"
 #endif
 
-#include <AsyncJson.h>
+#include "esp_async_webserver/AsyncJson.h"
 #include <SD.h>
 
 
@@ -24,7 +24,6 @@
 #include "CanBus.h"
 #include "Network.h"
 #include "Logging.h"
-#include "LUAProcessor.h"
 #include "Displays.h"
 
 #define ASSIGN_HELPER(keyname) if (keyParam->value() == #keyname)\
@@ -52,26 +51,10 @@ namespace CANServer
         bool analysisLoadInitialOutput = false;
         bool analysisLoadFinalOutput = false;
 
-        /*void _renderDisplay(AsyncWebServerRequest *request, DisplayState* display)
-        {
-            if (CANServer::CanBus::instance()->DisplayOnAnalysisItem()->lastValue == 1)
-            {                
-                std::stringstream ss;
-                ss << "a";
-                    
-                request->send(200, "text/plain", ss.str().c_str());
-
-//                    request->send(200, "text/plain", "1m2s DISPLAY  ERROR  t500r");
-            }
-            else
-            {
-                request->send(200, "text/plain", CANServer::DisplayState::offDisplayString());
-            }
-        }*/
 
         void setup()
         {
-            Serial.println("Setting up Web Server...");
+            Serial.println(F("Setting up Web Server..."));
 
         #ifdef INCLUDE_SPIFFS_EDITOR
             //Attach the SPIFFS editor helper so we can edit files on the fly
@@ -270,12 +253,6 @@ namespace CANServer
                 {
                     CANServer::CanBus::AnalysisItem *analysisItem = it->second;
                     dynamicanalysisitems[it->first] = analysisItem->lastValue;
-                }
-
-                JsonObject processeditems = doc.createNestedObject("processeditems");
-                for (CANServer::LUAProcessor::ProcessedItemMap::const_iterator it = CANServer::LUAProcessor::instance()->processedItems()->begin(); it != CANServer::LUAProcessor::instance()->processedItems()->end(); it++)
-                {
-                    processeditems[it->first] = it->second;
                 }
 
                 response->setLength();
@@ -551,8 +528,48 @@ littleendian: true
 
                 request->send(200);
             });
-
+            
             server.on("/analysis_load", HTTP_GET, [](AsyncWebServerRequest *request) {
+                AsyncJsonResponse * response = new AsyncJsonResponse();
+                JsonVariant& doc = response->getRoot();
+
+                for (CANServer::CanBus::AnalysisItemMap::const_iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->begin(); it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end(); it++)
+                {
+                    doc[it->first.c_str()] = it->second->builtIn;
+                }
+
+                response->setLength();
+                request->send(response);
+            });
+
+            server.on("/analysis_info", HTTP_GET, [](AsyncWebServerRequest *request) {
+                if(request->hasParam("item", false))
+                {
+                    CANServer::CanBus::AnalysisItemMap::const_iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->find(request->getParam("item", false)->value().c_str());
+                    if (it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end())
+                    {
+                        AsyncJsonResponse * response = new AsyncJsonResponse();
+                        JsonVariant& doc = response->getRoot();
+
+                        doc["frameid"] = it->second->frameId;
+                        doc["startBit"] = it->second->startBit;
+                        doc["bitLength"] = it->second->bitLength;
+                        doc["factor"] = it->second->factor;
+                        doc["signalOffset"] = it->second->signalOffset;
+                        doc["isSigned"] = it->second->isSigned;
+                        doc["byteOrder"] = it->second->byteOrder;
+
+                        response->setLength();
+                        request->send(response);
+
+                        return;
+                    }
+                }
+
+                request->send(404);
+            });
+
+            server.on("/analysis_load1", HTTP_GET, [](AsyncWebServerRequest *request) {
                 //Since the json returned for this call can get quite large we have to get creative about how we return it
                 //We used chunked responses and build the json up slowly (in small chunks of memory so as not to make the esp work too hard)
 
@@ -687,50 +704,6 @@ littleendian: true
                 response->setLength();
                 request->send(response);
             }); 
-
-
-            server.on("/processing", HTTP_GET, [](AsyncWebServerRequest *request) {
-                request->send(SPIFFS, "/html/processing.html");
-            });
-
-            server.on("/processing_stats", HTTP_GET, [](AsyncWebServerRequest *request) {
-                AsyncJsonResponse * response = new AsyncJsonResponse();
-                JsonVariant& doc = response->getRoot();
-
-                CANServer::LUAProcessor *processorInstance = CANServer::LUAProcessor::instance();
-
-                doc["state"] = !processorInstance->scriptError();
-                doc["errorstring"] = processorInstance->errorString();
-
-                Average<uint16_t>* processingTime = processorInstance->processingTime();
-                doc["mean"] = processingTime->mean();
-                doc["mode"] = processingTime->mode();
-                doc["max"] = processingTime->maximum();
-                doc["min"] = processingTime->minimum();
-                doc["stddev"] = processingTime->stddev();
-                
-                response->setLength();
-                request->send(response);
-            });
-
-
-            server.on("/processing_script", HTTP_GET, [](AsyncWebServerRequest *request) {
-                request->send(SPIFFS, "/processing/script.lua", "text/plain");
-            });
-
-            server.on("/processing_save", HTTP_POST, [](AsyncWebServerRequest *request) {
-                if(request->hasParam("script", true))
-                {
-                    CANServer::LUAProcessor::instance()->saveNewScript(request->getParam("script", true)->value().c_str());
-                    CANServer::LUAProcessor::instance()->loadScript();
-
-                    request->send(200);
-                    return;
-                }
-
-                request->send(404);
-                return;
-            });
 
 
             server.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request){

@@ -1,26 +1,22 @@
 <html>
     <head>
-        <title>CANServer</title>
-        <script src="/js/zepto.min.js"></script>
-        <link rel="icon" href="data:,">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>body {font-family: sans-serif;}</style>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="icon" href="data:,">
+      <link rel="stylesheet" type="text/css" href="/css/app.css">
+        
+      <title>CANServer</title>
+      <script src="/js/zepto.min.js"></script>
+
+      <style>body {font-family: sans-serif;}</style>
     </head>
     <body>
-      <h1>CANServer</h1>
-      <ul>
-        <li><a href="/displays">Display Config</a></li>
-        <li><a href="/network">Network Config</a></li>
-        <li><a href="/analysis">Analysis</a></li>
-        <li><a href="/processing">Processing Script</a></li>
-        <li><a href="/logs">Logs</a></li>
-        <li><a href="/debug">Debug</a></li>
-      </ul>
-      <button onclick="$.get('/restart');">Restart</button>
+      <main id="main">
+        
+        <p>Build Date: %BUILD_DATE%</p>
+        
+        <button onclick="$.get('/restart');">Restart</button>
       
-      <p><a href="https://github.com/joshwardell/CANserver">https://github.com/joshwardell/CANserver</a><br>
-        Build Date: %BUILD_DATE%
-      </p>
-      
+      </main>
     </body>
+    <script src="/js/app.js"></script>
 </html>

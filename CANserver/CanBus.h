@@ -1,7 +1,7 @@
 #ifndef __CANBUS_H__
 #define __CANBUS_H__
 
-#include <esp32_can.h>
+#include "esp32_can/esp32_can.h"
 #include <map>
 #include <list>
 

@@ -11,11 +11,11 @@ namespace CANServer
         bool _available = false;
         void setup()
         {
-            Serial.println("Setting up SD Card...");
+            log_i("Setting up SD Card...");
 
             if(!SD.begin())
             {
-                Serial.println("Card Mount Failed");
+                log_e("Card Mount Failed");
                 delay(500);
             }
             else
@@ -24,19 +24,19 @@ namespace CANServer
 
                 if (cardType == CARD_NONE)
                 {
-                    Serial.println("No SD card attached");
+                    log_w("No SD card attached");
                     return;
                 }
 
                 uint64_t cardSize = SD.cardSize() / (1024 * 1024);
-                Serial.printf("SD Card Size: %lluMB\r\n", cardSize);
-                Serial.printf("Total space: %lluMB\r\n", SD.totalBytes() / (1024 * 1024));
-                Serial.printf("Used space: %lluMB\r\n", SD.usedBytes() / (1024 * 1024));
+                log_i("SD Card Size: %lluMB", cardSize);
+                log_i("Total space: %lluMB", SD.totalBytes() / (1024 * 1024));
+                log_i("Used space: %lluMB", SD.usedBytes() / (1024 * 1024));
 
                 _available = true;
             }
 
-            Serial.println("Done");
+            log_i("Done");
         }
 
         const bool available()

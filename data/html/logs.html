@@ -1,31 +1,32 @@
 <html>
     <head>
-        <title>Logs</title>
-        <script src="/js/zepto.min.js"></script>
-        <link rel="icon" href="data:,">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="icon" href="data:,">
+      <link rel="stylesheet" type="text/css" href="/css/app.css">
+      
+      <title>Logs</title>
+      <script src="/js/zepto.min.js"></script>
         
-        <style>
-          body {font-family: sans-serif;}
-          label {
-            padding-left: 10px;
-          }
-          a.download, a.delete {
-            padding-left:10px;
-          }
-          .sdspace::after { 
-            content: " MB";
-          }
-          
-          span.logname {
-            display:inline-block;
-            width: 90px;
-          }
-        </style>
+      <style>
+        body {font-family: sans-serif;}
+        label {
+          padding-left: 10px;
+        }
+        a.download, a.delete {
+          padding-left:10px;
+        }
+        .sdspace::after { 
+          content: " MB";
+        }
+        
+        span.logname {
+          display:inline-block;
+          width: 90px;
+        }
+      </style>
     </head>
     <body>
-        <H1>Logs</H1>
-        <a href="/">Home</a><br><br>
+      <main id="logs">
         <form action="/logs_save" method="POST">
           <div id="logs">
           Loading...
@@ -33,6 +34,9 @@
           <br>
           <button id="submit" type="submit">Save</button>
         </form>
+      </main>
+      
+      <script src="/js/app.js"></script>
         <script>
           function initialLoad() {
             $.get('/logs_update', function(response){

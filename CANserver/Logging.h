@@ -2,7 +2,7 @@
 #define __LOGGING_H__
 
 #include <Arduino.h>
-#include <esp32_can.h>
+#include "esp32_can/esp32_can.h"
 #include <Preferences.h>
 #include <map>
 

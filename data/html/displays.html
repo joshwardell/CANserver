@@ -1,20 +1,19 @@
 <html>
     <head>
-        <title>Display Config</title>
-        <script src="/js/zepto.min.js"></script>
-        <script src="/js/app.js"></script>
-        <link rel="icon" href="data:,">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-          body {font-family: sans-serif;}
-        
-          select { margin-bottom:5px; }
-        </style>
-        <link rel="stylesheet" type="text/css" href="/css/app.css">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="icon" href="data:,">
+      <link rel="stylesheet" type="text/css" href="/css/app.css">
+      
+      <title>Display Config</title>
+      <script src="/js/zepto.min.js"></script>
+      <style>
+        body {font-family: sans-serif;}
+      
+        select { margin-bottom:5px; }
+      </style>
     </head>
     <body>
-        <H1>Display Config</H1>
-        <a href="/">Home</a><br><br>
+      <main id="display">
         <div id="configparams">
           
           Display:
@@ -39,9 +38,12 @@
             <textarea id="displayscript" disabled></textarea>
           </div>
           <br>
-          <button id="save" style="display:none;" onclick="saveScript();">Save</button>
+          <button id="save" style="display:none;" onclick="saveScript();">Save</button> <span id="saveStatus"></span>
         </div>
-        
+      </main>
+      
+      <script src="/js/app.js"></script>
+      
         <script>
           TLN.append_line_numbers('displayscript');
           wrapper.style.width='1000px';
@@ -67,8 +69,12 @@
             });
           
           function loadDisplayScript(displayId) {
-            $('button#save').hide();
-            $('textarea#displayscript').attr('disabled', true);
+            clearSaveStatus();
+            
+            setTimeout("$('button#save').hide();\
+            $('textarea#displayscript').attr('disabled', true);\
+            $('textarea#displayscript').val('Loading...');", 0);
+            
             $.get('/display_load?dispId=' + displayId, function(response) {
               $('textarea#displayscript').val(response);
               $('textarea#displayscript').attr('disabled', null);
@@ -78,7 +84,11 @@
             });
           }
           
+          var _clearSaveStatusTimeout = 0;
           function saveScript() {
+            clearTimeout(_clearSaveStatusTimeout);
+            $('#saveStatus').html("Saving...");
+            
             postInfo = {};
             
             selectObj = $('select#displayid').get(0);
@@ -92,9 +102,23 @@
               type: 'POST',
               data: postInfo,
               success: function(data) {
+                $('#saveStatus').html("Saved!");
+              },
+              error: function(xhr, errorType, error) {
+                $('#saveStatus').html("Error Saving");
+              },
+              complete: function(xhr, status) {
                 loadStatus();
+                
+                _clearSaveStatusTimeout = setTimeout('clearSaveStatus()', 2000);
               }
             });
+          }
+          
+          function clearSaveStatus()
+          {
+            _clearSaveStatusTimeout = 0;
+            $('#saveStatus').html("");
           }
           
           function loadStatus() {
@@ -122,6 +146,17 @@
               }
             });
           }
+
+          $(window).bind('keydown', function(event) {
+            if (event.ctrlKey || event.metaKey) {
+                switch (String.fromCharCode(event.which).toLowerCase()) {
+                case 's':
+                    event.preventDefault();
+                    saveScript();
+                    break;
+                }
+            }
+          });
 
           loadDisplayScript(0);
           setInterval('loadStatus()', 5000);

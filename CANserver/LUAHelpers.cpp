@@ -1,14 +1,12 @@
 #include "LUAHelpers.h"
 
 #include "CanBus.h"
-#include "LUAProcessor.h"
 
 
 
 extern "C" {
     static int lua_wrapper_print (lua_State *L);
     static int lua_wrapper_getvar(lua_State *L);
-    static int lua_wrapper_setvar(lua_State *L);
 }
 
 
@@ -103,7 +101,7 @@ const char* CANServer::LUAHelpers::SPIFFSLoader::lua_SPIFFS_Loader( lua_State *L
 }
 
 
-void CANServer::LUAHelpers::setupLUAState(lua_State *L, const bool includeSetVar)
+void CANServer::LUAHelpers::setupLUAState(lua_State *L)
 {
     luaopen_base(L);
     luaopen_table(L);
@@ -128,10 +126,6 @@ void CANServer::LUAHelpers::setupLUAState(lua_State *L, const bool includeSetVar
     //Register some handlers we provide
     lua_register(L, "print", lua_wrapper_print);
     lua_register(L, "CANServer_getVar", lua_wrapper_getvar);
-    if (includeSetVar)
-    {
-        lua_register(L, "CANServer_setVar", lua_wrapper_setvar);
-    }
 }
 
 
@@ -173,26 +167,16 @@ extern "C" {
                 {
                     const char* varName = lua_tostring(L, 1);
 
-                    //Check to see if this is a processed item first
-                    CANServer::LUAProcessor *luaprocessorInstance = CANServer::LUAProcessor::instance();
-                    CANServer::LUAProcessor::ProcessedItemMap::iterator item_it = luaprocessorInstance->processedItems()->find(varName);
-                    if (item_it != luaprocessorInstance->processedItems()->end())
+                    CANServer::CanBus *canbusInstance = CANServer::CanBus::instance();
+                    CANServer::CanBus::AnalysisItemMap::const_iterator found_it = canbusInstance->dynamicAnalysisItems()->find(varName);
+                    if (found_it != canbusInstance->dynamicAnalysisItems()->end())
                     {
-                        lua_pushnumber(L, item_it->second);
+                        lua_pushnumber(L, found_it->second->lastValue);
                     }
                     else
                     {
-                        CANServer::CanBus *canbusInstance = CANServer::CanBus::instance();
-                        CANServer::CanBus::AnalysisItemMap::const_iterator found_it = canbusInstance->dynamicAnalysisItems()->find(varName);
-                        if (found_it != canbusInstance->dynamicAnalysisItems()->end())
-                        {
-                            lua_pushnumber(L, found_it->second->lastValue);
-                        }
-                        else
-                        {
-                            //Check to see if this is a processed item
-                            lua_pushnumber(L, 0);
-                        }
+                        //Check to see if this is a processed item
+                        lua_pushnumber(L, 0);
                     }
                     return 1;
                 }
@@ -201,43 +185,5 @@ extern "C" {
                     return luaL_error(L, "Argument expected to be a string");
                 }
         }
-    }
-
-    static int lua_wrapper_setvar(lua_State *L) {
-        int n = lua_gettop(L);
-        if (n != 2)
-        {
-            //We expect a single argument - The variable name
-            return luaL_error(L, "2 argument expected (<variable name>, <value>)");
-        } 
-        else
-        {
-            if (lua_type(L, 1) == LUA_TSTRING)
-            {
-                if (lua_type(L, 2) == LUA_TNUMBER)
-                {
-                    const char* varName = lua_tostring(L, 1);
-                    CANServer::LUAProcessor* luaprocessorInstance = CANServer::LUAProcessor::instance();
-                    CANServer::LUAProcessor::ProcessedItemMap::iterator item_it = luaprocessorInstance->processedItems()->find(varName);
-                    if (item_it == luaprocessorInstance->processedItems()->end())
-                    {
-                        std::pair<CANServer::LUAProcessor::ProcessedItemMap::iterator, bool> returnPair = luaprocessorInstance->processedItems()->insert(CANServer::LUAProcessor::ProcessedItemPair(varName, 0));
-                        item_it = returnPair.first;
-                    }
-
-                    item_it->second = lua_tonumber(L, 2);
-                }
-                else
-                {
-                    return luaL_error(L, "Argument 2 expected to be a number");
-                }
-            }
-            else
-            {
-                return luaL_error(L, "Argument 1 expected to be a string");
-            }
-        }
-
-        return 0;
     }
 }

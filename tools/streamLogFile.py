@@ -3,7 +3,7 @@ from struct import *
 import time
 
 #targetIP = '192.168.4.1'
-targetIP = '192.168.1.128'
+targetIP = '172.20.21.204'
 targetPort = 9955
 
 
@@ -19,8 +19,15 @@ sendFrame(0x528, pack('>I', int(time.time())))
 time.sleep(1)
 
 lastFrameTime = 0
-with open("/Users/chris/Downloads/CAN.raw (3).log") as f:
+lineCount = 0
+with open("/Users/chris/Downloads/CAN.raw.log") as f:
     for line in f:
+        lineCount = lineCount + 1
+        if lineCount < 500000:
+            continue
+
+        print(lineCount)
+
         line = line.rstrip('\n')
         splitLine = line.split(" ")
         frameTime = splitLine[0][1:-1]
@@ -32,7 +39,7 @@ with open("/Users/chris/Downloads/CAN.raw (3).log") as f:
                 #more then likley a time sync has just happened.  Just sleep for a split second
                 time.sleep(0.5)
             else:
-                time.sleep(abs(float(framediff)))
+                time.sleep(0.001) # abs(float(framediff)))
 
         lastFrameTime = float(frameTime)
             

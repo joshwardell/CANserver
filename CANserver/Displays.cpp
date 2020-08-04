@@ -81,7 +81,7 @@ void CANServer::Displays::setup()
     if (_luaState == NULL)
     {
         _luaState = luaL_newstate();
-        CANServer::LUAHelpers::setupLUAState(_luaState, false);
+        CANServer::LUAHelpers::setupLUAState(_luaState);
     }
 
     this->loadScriptForDisplay(0);
@@ -318,37 +318,17 @@ const char* CANServer::Displays::renderDisplay(const uint8_t displayId)
             *luaErrorString = lua_tostring(_luaState, -1);
             lua_pop(_luaState, 1);
         }
+
+        lua_gc (_luaState, LUA_GCCOLLECT, 0);
     }
     unsigned long endTime = millis();
 
     processingTime->push(endTime - startTime);
 
+    if (*luaError)
+    {
+        *stringToReturn = "1m2s DISPLAY  ERROR  t500r";
+    }
+
     return stringToReturn->c_str();
 }
-
-/*
-    //Couldn't open the settings file for this display.  Default it
-    switch(_displayId)
-    {
-        case 0:
-        {
-            _displayString = F("65535c${BattPower}vWK  Bu${BattPower_Scaled_Bar}b0m100r");
-            break;
-        }
-        case 1:
-        {
-            _displayString = F("65535c${RearTorque}vMNu${RearTorque_Scaled_Bar}b0m100r");
-            break;
-        }
-        case 2:
-        {
-            _displayString = F("$if BSR {{2v63488c6m100r}} $elseif BSL {{1v63488c6m100r}} $else {{65535c${VehSpeed}v${SpeedUnitString}u${BattPower_Scaled_Bar}b0m100r}}");
-            break;
-        }
-        case 3:
-        {
-            _displayString = F("1m2s DISPLAY    3   t500r");
-            break;
-        }
-    }
-}*/

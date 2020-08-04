@@ -1,9 +1,13 @@
 <html>
     <head>
-        <title>Analysis</title>
-        <script src="/js/zepto.min.js"></script>
-        <link rel="icon" href="data:,">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta http-equiv="content-language" content="en" />
+      <link rel="icon" href="data:,">
+      <link rel="stylesheet" type="text/css" href="/css/app.css">
+      
+      <title>Analysis</title>
+      <script src="/js/zepto.min.js"></script>
+        
         <style>
           body {font-family: sans-serif;}
           
@@ -18,11 +22,14 @@
           tbody tr:nth-child(even) {
             background-color: lightgrey; 
           }
+          
+          .blockInput {
+            pointer-events:none;
+          }
         </style>
     </head>
     <body>
-        <H1>Analysis</H1>
-        <a href="/">Home</a><br><br>
+      <main id="analysis">
         <div id="dynamicanalysisitems">
           <table>
             <thead>
@@ -71,12 +78,12 @@
                   <input class="issigned" name="issigned" type="checkbox">
                 </td>
                 <td>
-                  <input class="littleendian" name="littleendian" type="checkbox">
+                  <input class="littleendian" name="littleendian" type="checkbox" checked>
                 </td>
                 <td class="value"> --- </td>
                 <td>
-                  <a id="save" alt="Save" title="Save" href="javascript:void(0);" onclick="saveItem(this);"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAH+SURBVBgZBcE9i11VGAbQtc/sO0OCkqhghEREAwpWAWUg8aMVf4KFaJEqQtAipTZWViKiCGOh2Ap2gmJhlSIWFsFOxUK0EsUM3pl79n4f12qHb3z3Fh7D83gC95GOJsDe0ixLk5Qq/+xv/Lw9Xd+78/HLX3Y8fXTr2nWapy4eCFKxG7Fby97SnDlYtMbxthyfzHO//nl85fNvfvnk8MbX5xa8IHx1518Vkrj54Q+qQms2vVmWZjdiu5ZR2rT01166/NCZg/2PFjwSVMU6yjoC1oq+x6Y3VbHdlXWExPd379nf7Nmejv2Os6OC2O4KLK0RNn3RNCdr2Z5GJSpU4o+/TkhaJ30mEk5HwNuvX7Hpi76wzvjvtIwqVUSkyjqmpHS0mki8+9mPWmuWxqYvGkbFGCUAOH/+QevYI9GFSqmaHr5wkUYTAlGhqiRRiaqiNes6SOkwJwnQEqBRRRJEgkRLJGVdm6R0GLMQENE0EkmkSkQSVVMqopyuIaUTs0J455VLAAAAAODW0U/GiKT0pTWziEj44PZ1AAAAcPPqkTmH3QiJrlEVDXDt0qsAAAAAapa5BqUnyaw0Am7//gUAAAB49tEXzTmtM5KkV/y2G/X4M5fPao03n/sUAAAAwIX7y5yBv9vhjW/fT/IkuSp5gJKElKRISYoUiSRIyD1tufs/IXxui20QsKIAAAAASUVORK5CYII="></a>
-                  <a id="delete" alt="Delete" title="Delete" href="javascript:void(0);" onclick="deleteItem(this);"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAJdSURBVDjLpZP7S1NhGMf9W7YfogSJboSEUVCY8zJ31trcps6zTI9bLGJpjp1hmkGNxVz4Q6ildtXKXzJNbJRaRmrXoeWx8tJOTWptnrNryre5YCYuI3rh+8vL+/m8PA/PkwIg5X+y5mJWrxfOUBXm91QZM6UluUmthntHqplxUml2lciF6wrmdHriI0Wx3xw2hAediLwZRWRkCPzdDswaSvGqkGCfq8VEUsEyPF1O8Qu3O7A09RbRvjuIttsRbT6HHzebsDjcB4/JgFFlNv9MnkmsEszodIIY7Oaut2OJcSF68Qx8dgv8tmqEL1gQaaARtp5A+N4NzB0lMXxon/uxbI8gIYjB9HytGYuusfiPIQcN71kjgnW6VeFOkgh3XcHLvAwMSDPohOADdYQJdF1FtLMZPmslvhZJk2ahkgRvq4HHUoWHRDqTEDDl2mDkfheiDgt8pw340/EocuClCuFvboQzb0cwIZgki4KhzlaE6w0InipbVzBfqoK/qRH94i0rgokSFeO11iBkp8EdV8cfJo0yD75aE2ZNRvSJ0lZKcBXLaUYmQrCzDT6tDN5SyRqYlWeDLZAg0H4JQ+Jt6M3atNLE10VSwQsN4Z6r0CBwqzXesHmV+BeoyAUri8EyMfi2FowXS5dhd7doo2DVII0V5BAjigP89GEVAtda8b2ehodU4rNaAW+dGfzlFkyo89GTlcrHYCLpKD+V7yeeHNzLjkp24Uu1Ed6G8/F8qjqGRzlbl2H2dzjpMg1KdwsHxOlmJ7GTeZC/nesXbeZ6c9OYnuxUc3fmBuFft/Ff8xMd0s65SXIb/gAAAABJRU5ErkJggg=="></a>
+                  <a id="save" alt="Save" title="Save" href="javascript:void(0);" onclick="saveItem(this);"><img style="vertical-align: text-top;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAH+SURBVBgZBcE9i11VGAbQtc/sO0OCkqhghEREAwpWAWUg8aMVf4KFaJEqQtAipTZWViKiCGOh2Ap2gmJhlSIWFsFOxUK0EsUM3pl79n4f12qHb3z3Fh7D83gC95GOJsDe0ixLk5Qq/+xv/Lw9Xd+78/HLX3Y8fXTr2nWapy4eCFKxG7Fby97SnDlYtMbxthyfzHO//nl85fNvfvnk8MbX5xa8IHx1518Vkrj54Q+qQms2vVmWZjdiu5ZR2rT01166/NCZg/2PFjwSVMU6yjoC1oq+x6Y3VbHdlXWExPd379nf7Nmejv2Os6OC2O4KLK0RNn3RNCdr2Z5GJSpU4o+/TkhaJ30mEk5HwNuvX7Hpi76wzvjvtIwqVUSkyjqmpHS0mki8+9mPWmuWxqYvGkbFGCUAOH/+QevYI9GFSqmaHr5wkUYTAlGhqiRRiaqiNes6SOkwJwnQEqBRRRJEgkRLJGVdm6R0GLMQENE0EkmkSkQSVVMqopyuIaUTs0J455VLAAAAAODW0U/GiKT0pTWziEj44PZ1AAAAcPPqkTmH3QiJrlEVDXDt0qsAAAAAapa5BqUnyaw0Am7//gUAAAB49tEXzTmtM5KkV/y2G/X4M5fPao03n/sUAAAAwIX7y5yBv9vhjW/fT/IkuSp5gJKElKRISYoUiSRIyD1tufs/IXxui20QsKIAAAAASUVORK5CYII="></a>
+                  <a id="delete" alt="Delete" title="Delete" href="javascript:void(0);" onclick="deleteItem(this);"><img style="vertical-align: text-top;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAJdSURBVDjLpZP7S1NhGMf9W7YfogSJboSEUVCY8zJ31trcps6zTI9bLGJpjp1hmkGNxVz4Q6ildtXKXzJNbJRaRmrXoeWx8tJOTWptnrNryre5YCYuI3rh+8vL+/m8PA/PkwIg5X+y5mJWrxfOUBXm91QZM6UluUmthntHqplxUml2lciF6wrmdHriI0Wx3xw2hAediLwZRWRkCPzdDswaSvGqkGCfq8VEUsEyPF1O8Qu3O7A09RbRvjuIttsRbT6HHzebsDjcB4/JgFFlNv9MnkmsEszodIIY7Oaut2OJcSF68Qx8dgv8tmqEL1gQaaARtp5A+N4NzB0lMXxon/uxbI8gIYjB9HytGYuusfiPIQcN71kjgnW6VeFOkgh3XcHLvAwMSDPohOADdYQJdF1FtLMZPmslvhZJk2ahkgRvq4HHUoWHRDqTEDDl2mDkfheiDgt8pw340/EocuClCuFvboQzb0cwIZgki4KhzlaE6w0InipbVzBfqoK/qRH94i0rgokSFeO11iBkp8EdV8cfJo0yD75aE2ZNRvSJ0lZKcBXLaUYmQrCzDT6tDN5SyRqYlWeDLZAg0H4JQ+Jt6M3atNLE10VSwQsN4Z6r0CBwqzXesHmV+BeoyAUri8EyMfi2FowXS5dhd7doo2DVII0V5BAjigP89GEVAtda8b2ehodU4rNaAW+dGfzlFkyo89GTlcrHYCLpKD+V7yeeHNzLjkp24Uu1Ed6G8/F8qjqGRzlbl2H2dzjpMg1KdwsHxOlmJ7GTeZC/nesXbeZ6c9OYnuxUc3fmBuFft/Ff8xMd0s65SXIb/gAAAABJRU5ErkJggg=="></a>
                 </td>
               </tr>
             </tfoot>
@@ -84,8 +91,10 @@
           <br>
           <button onclick="newItem();">New Item</button>
         </div>
-        
-
+      </main>
+      
+      <script src="/js/app.js"></script>
+      
         <script>
         
           function hexToDec(hex) {
@@ -109,42 +118,76 @@
               return hex;
           }
           
+          const getJSON = url => fetch(url).then(r => r.json()).catch(console.error);
+          
+          var itemsToLoad = [];
+          // the recursive function
+          function getItemsRecursive() {
+          
+              // terminate if array exhausted
+              if (itemsToLoad.length === 0) {
+                updateLoad();
+                setInterval('updateLoad();', 2000);
+                return;
+              }
+
+              // pop top value
+              var itemId = itemsToLoad[0];
+              itemsToLoad.shift();
+          
+              // ajax request
+              $.get('/analysis_info?item=' + itemId, function(response) {
+
+                  $theRow = $('tr#' + itemId);
+                  $nameInput = $('input.name', $theRow);
+                  if ($nameInput.data('builtin') === true) {
+                  } else {
+                    $nameInput.prop('disabled', false);
+                  }
+                  $('input.frameid', $theRow).prop('disabled', false).val('0x' + decimalToHex(response.frameid, 3));
+                  $('input.startbit', $theRow).prop('disabled', false).val(response.startBit);
+                  $('input.bitlength', $theRow).prop('disabled', false).val(response.bitLength);
+                  $('input.factor', $theRow).prop('disabled', false).val(response.factor);
+                  $('input.signaloffset', $theRow).prop('disabled', false).val(response.signalOffset);
+                  $('input.issigned', $theRow).prop('disabled', false).prop('checked', response.isSigned);
+                  $('input.littleendian', $theRow).prop('disabled', false).prop('checked', response.byteOrder);
+                  
+                  $('a', $theRow).removeClass('blockInput');
+                  
+                  // call completed - so start next request
+                  getItemsRecursive();
+              });
+          }
+          
           $.get('/analysis_load', function(response){
             var haveItems = false;
             
             $('tr#loading').remove();
             Object.keys(response).forEach((k, i) => {
               haveItems = true;
-              itemdetails = response[k];
+              
+              itemsToLoad.push(k);
               
               $rowCopy = $("tfoot tr#rowtemplate").clone();
               $rowCopy.show();
               
               $rowCopy.attr('id', k);
+
+              $('input', $rowCopy).prop('disabled', true);
+              $('a', $rowCopy).addClass("blockInput");
               
               $inputBox = $('input.name', $rowCopy);
               $inputBox.val(k);
               
-              isBuiltIn = false;
-              if ('builtIn' in itemdetails) {
-                isBuiltIn = itemdetails.builtIn;
-              }
-              
+              isBuiltIn = response[k];
+
               if (isBuiltIn) {
-                  $inputBox.prop('disabled', true);
+                  $inputBox.data('builtin', true);
                   $inputBox.attr('alt', 'This is a built in item.  You can\'t change its name or delete it');
                   $inputBox.attr('title', 'This is a built in item.  You can\'t change its name or delete it');
                   
                   $('a#delete', $rowCopy).hide();
               }
-              
-              $('input.frameid', $rowCopy).val('0x' + decimalToHex(itemdetails.frameid, 3));
-              $('input.startbit', $rowCopy).val(itemdetails.startBit);
-              $('input.bitlength', $rowCopy).val(itemdetails.bitLength);
-              $('input.factor', $rowCopy).val(itemdetails.factor);
-              $('input.signaloffset', $rowCopy).val(itemdetails.signalOffset);
-              $('input.issigned', $rowCopy).prop('checked', itemdetails.isSigned);
-              $('input.littleendian', $rowCopy).prop('checked', itemdetails.byteOrder);
               
               $('table tbody').append($rowCopy);
             });
@@ -152,6 +195,8 @@
             if (!haveItems) {
               $('tr#noitems').show();
             }
+            
+            getItemsRecursive();
           });
           
           function newItem()
@@ -244,8 +289,6 @@
                 });
             });
           }
-          
-          setInterval('updateLoad()', 1000);
         </script>
     </body>
 </html>

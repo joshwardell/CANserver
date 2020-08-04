@@ -1,7 +1,7 @@
 #include "CanBus.h"
 
 #include <Arduino.h>
-#include <esp32_can.h>
+#include "esp32_can/esp32_can.h"
 #include <SPIFFS.h>
 #include <ArduinoJson.h>
 
@@ -66,7 +66,7 @@ CANServer::CanBus::CanBus()
 
 void CANServer::CanBus::setup()
 {
-    Serial.println(F("Setting up Can-Bus..."));
+    log_i("Setting up Can-Bus...");
 
     this->_loadDynamicAnalysisConfiguration();
 
@@ -83,7 +83,7 @@ void CANServer::CanBus::setup()
     canudp.begin();
 #endif
 
-    Serial.println(F("Done"));
+    log_i("Done");
 }
 
 void CANServer::CanBus::startup()

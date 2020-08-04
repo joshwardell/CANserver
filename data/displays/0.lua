@@ -1,2 +1,4 @@
-return "65535c" .. math.floor(CANServer_getVar("BattPower") * 10) .. 
-	"vWK  Bu" .. math.floor(CANServer_getVar("BattPower_Scaled_Bar")) .. "b0m100r"
+local battPowerKW = (CANServer_getVar("BattVolts") * CANServer_getVar("BattAmps") / 1000.0)
+local graphBattPower = math.floor(math.min(math.max((24) * (battPowerKW) / (300), -24), 24))
+
+return "65535c" .. math.floor(battPowerKW * 10) .. "vWK  Bu" .. graphBattPower .. "b0m100r"

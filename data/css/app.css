@@ -1,17 +1,232 @@
+/* document */
+:root {
+  box-sizing: border-box;
+  /* https://coolors.co/9a8f97-c3baba-e9e3e6-b2b2b2-736f72 */
+  --color-1: hsla(315, 2%, 44%, 1); /* sonic-silver */
+  --color-2: hsla(316, 5%, 58%, 1); /* heliotrope-gray */
+  --color-3: hsla(0, 0%, 70%, 1); /* silver-chalice */
+  --color-4: hsla(0, 7%, 75%, 1); /* pale-silver */
+  --color-5: hsla(330, 12%, 90%, 1); /* platinum */
+  --solid: #000;
+  --plain: #fff;
+  --small: 4px;
+  --medium: 8px;
+  --large: 12px;
+  --x-large: 16px;
+  font-size: var(--x-large);
+}
+
+@media screen and (max-width: 768px) {
+  :root {
+      font-size: var(--large);
+  }
+}
+
+/* tln */
 .tln-active,.tln-wrapper,.tln-line{margin:0;border:0;padding:0;outline:0;box-sizing:border-box;vertical-align:middle;list-style:none}.tln-active{display:inline-block;padding:.625em;width:calc(100% - 3em);height:100%;word-break:break-all;border:1px solid #aeaeae;background-color:#fff;resize:none;overflow-wrap:normal;overflow-x:auto;white-space:pre;font:1em/1.5 "Roboto Mono",monospace}.tln-wrapper{width:3em;padding:.6875em .3125em 2.1875em;height:100%;word-break:break-all;overflow:hidden;display:inline-block;counter-reset:line}.tln-line{width:100%;display:block;text-align:right;line-height:1.5;font-size:1em;color:#aeaeae}.tln-line::before{counter-increment:line;content:counter(line);font-size:1em;user-select:none}
 
-span#scriptstate {
-  padding: 4px;
+html, body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: var(--large) 0 var(--large);
+}
+
+body {
+  background: var(--plain);
+  margin: 0;
+}
+
+/* navigation */
+nav {
+  z-index: 1;
+  background: var(--color-5);
+  border-bottom: 2px solid var(--color-1);
+}
+
+@media screen and (max-width: 320px) {
+  nav {
+      font-size: 11px;
+  }
+}
+
+nav a {
+  text-decoration: none;
+}
+
+nav ul {
+  display: flex;
+  width: 100%;
+  list-style-type: none;
+  margin: 0 auto 0 auto;
+  padding: 0;
+  color: var(--plain);
+}
+
+nav li {
   display: inline-block;
+  border-right: 1px solid var(--color-1);
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  width: 20%;
+  height: 40px;
+  line-height: 40px;
+}
+
+nav li:last-of-type {
+  border-right: none;
+}
+
+nav li a, nav li a:visited {
+  color: var(--solid);
+}
+
+nav li a:hover {
+  background: var(--color-1);
+  color: var(--plain);
+}
+
+nav li.active {
+  background: var(--color-1);
+  color: var(--plain);
+  font-weight: bold;
+}
+
+nav li.active a, nav li.active a:visited {
+  color: var(--plain);
+}
+
+nav a {
+  display: inline-block;
+  width: 100%;
+}
+
+/* misc */
+button {
+  background: var(--color-5);
+  border: 1px solid var(--color-1);
+  padding: var(--small) var(--medium);
+  border-radius: 2px;
+  margin: var(--medium) 0;
+  font-size: var(--large);
+}
+
+input {
+  background: var(--color-3);
+  border: 1px solid var(--color-1);
+  padding: var(--small) var(--medium);
+  border-radius: 2px;
+  margin: var(--small) 0;
+  font-size: var(--large);
+}
+
+input[type=text] {
+  min-width: 300px;
+  height: 30px;
+}
+
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+input[type=checkbox] {
+  margin-left: var(--medium);
+}
+
+label {
+  display: inline-block;
+  min-width: 130px;
+}
+
+button:active {
+  background: var(--color-3);
+}
+
+img {
+  margin-left: var(--medium);
+}
+
+
+main {
+  padding: var(--large);
+  flex: 1 0 auto;
+}
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: var(--small);
+  background: var(--color-5);
+  border-top: 2px solid var(--color-1);
+  border-bottom: 2px solid var(--color-1);
+}
+
+.indent {
+  margin-left: var(--large);
+}
+
+.separator {
+  margin: var(--large) 0;
+}
+
+.hidden {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  footer {
+      flex-direction: column;
+  }
+  footer>* {
+      margin: var(--small) 0;
+  }
+}
+
+#editorwrapper {
+margin-top: var(--medium);
+width: 100%;
+height: 60%;
+}
+span#scriptstate {
+padding: 4px;
+display: inline-block;
 }
 span#scriptstate.good {
-  color: #fff;
-  background-color: #0A0;
+color: #fff;
+background-color: #0A0;
 }
 span#scriptstate.bad {
-  color: #fff;
-  background-color: #F00;
+color: #fff;
+background-color: #F00;
+}
+span.item {
+display: inline-block;
+width: 200px;
+}
+span.value {
+display: inline-block;
+width: 50px;
 }
 textarea {
-  tab-size: 2;
+tab-size: 2;
+}
+
+#analysis tr td {
+text-align: center;
+padding: 2px 5px;
+}
+#analysis input.frameid, #analysis input.startbit, #analysis input.bitlength, #analysis input.factor, #analysis input.signaloffset {
+width:50px;
+}
+#analysis tbody tr:nth-child(even) {
+background-color: lightgrey; 
 }

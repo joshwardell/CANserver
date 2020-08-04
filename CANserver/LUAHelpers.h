@@ -12,7 +12,7 @@ namespace CANServer
 {
     namespace LUAHelpers
     {
-        void setupLUAState(lua_State *L, const bool includeSetVar);
+        void setupLUAState(lua_State *L);
 
         class SPIFFSLoader
         {

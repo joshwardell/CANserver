@@ -1,2 +1,4 @@
-return "65535c" .. math.floor(CANServer_getVar("RearTorque") * 10) ..
-	"vMNu" .. math.floor(CANServer_getVar("RearTorque_Scaled_Bar")) .. "b0m100r"
+local rearTorque = CANServer_getVar("RearTorque")
+local graphRearTorque = math.floor(math.min(math.max((24) * (rearTorque) / (400), -24), 24))
+
+return "65535c" .. math.floor(rearTorque * 10) .. "vWK  Bu" .. graphRearTorque .. "b0m100r"

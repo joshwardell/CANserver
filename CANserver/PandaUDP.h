@@ -4,7 +4,7 @@
 
 #include <arduino.h>
 #include <AsyncUDP.h>
-#include <esp32_can.h>  //CAN_FRAME
+#include "esp32_can/esp32_can.h"
 
 class AsyncUDP;
 

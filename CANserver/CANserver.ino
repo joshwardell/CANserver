@@ -18,7 +18,7 @@
 #include "PandaUDP.h"
 #include "CANUDP.h"
 #include "Logging.h"
-#include "LUAProcessor.h"
+#include "Average.h"
 
 #define LED1 1    //shared with serial tx - try not to use
 #define LED2 2    //onboard blue LED
@@ -40,7 +40,7 @@ void setup() {
     Serial.println();
     Serial.println();
     Serial.println();
-    Serial.println(__DATE__ " " __TIME__);
+    log_i(__DATE__ " " __TIME__);
     
     //Bring up storage devices    
     CANServer::SPIFFileSystem::setup();
@@ -60,8 +60,6 @@ void setup() {
 
     CANServer::Displays::instance()->setup();
 
-    CANServer::LUAProcessor::instance()->setup();
-
     //Bring up Web server
     CANServer::WebServer::setup();
 
@@ -71,8 +69,14 @@ void setup() {
 
 unsigned long previousMillisMemoryOutput = 0;
 unsigned long previousMillisLEDBlink = 0;
+
+Average<unsigned long> _loopTime(20);
+Average<uint32_t> _memoryUsage(20);
+uint8_t memorySampleCounter = 0;
+
 void loop()
 {
+    unsigned long loopTimeStart = millis();
     //Deal with any pending OTA related work
     CANServer::Network::handle();
     CANServer::OTA::handle();
@@ -80,15 +84,20 @@ void loop()
 
     CANServer::CanBus::instance()->handle();
 
-    CANServer::LUAProcessor::instance()->handle();
+    _loopTime.push(millis() - loopTimeStart);
 
     unsigned long currentMillis = millis();
-    if (currentMillis - previousMillisMemoryOutput >= 10000) 
+    if (currentMillis - previousMillisMemoryOutput >= 100) 
     {
         previousMillisMemoryOutput = currentMillis;
-        
-        Serial.print("RAM Usage: ");
-        Serial.println(ESP.getFreeHeap());
+        _memoryUsage.push(ESP.getFreeHeap());
+
+        if (memorySampleCounter++ > 10)
+        {
+            log_v("RAM Usage: mean: %0.2f, max: %d, min: %d, stdev: %0.2f", _memoryUsage.mean(), _memoryUsage.maximum(), _memoryUsage.minimum(), _memoryUsage.stddev());
+            log_v("Lopp Time: mean: %0.2f, max: %d, min: %d, stdev: %0.2f", _loopTime.mean(), _loopTime.maximum(), _loopTime.minimum(), _loopTime.stddev());
+            memorySampleCounter = 0;
+        }
     }
 
     if (currentMillis - previousMillisLEDBlink >= 500) 

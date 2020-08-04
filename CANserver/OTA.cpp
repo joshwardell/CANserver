@@ -1,11 +1,9 @@
 #include "OTA.h"
 
 #include <Arduino.h>
-#include <ArduinoOTA.h>
-#include <SPIFFS.h>
-#include <ESPAsyncWebServer.h>
+//#include <ArduinoOTA.h>
 
-extern AsyncWebServer server;
+//extern AsyncWebServer server;
 
 const char* otaHostname = "CANserver";
 const char* otaPassword = "JWcanServer2020";
@@ -16,7 +14,7 @@ namespace CANServer
     {
         void setup()
         {
-            Serial.println("Setting up OTA Updates...");
+            /*Serial.println("Setting up OTA Updates...");
 
             // set up ArduinoOTA
             ArduinoOTA.setHostname(otaHostname);
@@ -66,12 +64,12 @@ namespace CANServer
             
             ArduinoOTA.begin();
             
-            Serial.println("Done");
+            Serial.println("Done");*/
         }
 
         void handle()
         {
-            ArduinoOTA.handle();
+            //ArduinoOTA.handle();
         }
     }
 }
