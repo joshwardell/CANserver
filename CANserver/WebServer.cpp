@@ -288,8 +288,8 @@ detailsNode["filesize"] = logginginstance->fileSize(logtype);\
                 sdDetailsNode["available"] = SDCard::available();
                 if (SDCard::available())
                 {
-                    sdDetailsNode["totalkbytes"] = (uint32_t)(SD.totalBytes() / (1024 * 1024));
-                    sdDetailsNode["usedkbytes"] = (uint32_t)(SD.usedBytes() / (1024 * 1024));
+                    sdDetailsNode["totalmbytes"] = (uint32_t)(SD.totalBytes() / (1024 * 1024));
+                    sdDetailsNode["usedmbytes"] = (uint32_t)(SD.usedBytes() / (1024 * 1024));
                 }
 
                 response->setLength();
@@ -491,7 +491,7 @@ littleendian: true
                     }
                     else
                     {
-                        analysisItem->byteOrder = true;
+                        analysisItem->byteOrder = false;
                     }
 
                     //Pause running of the items so we can modify them
@@ -504,6 +504,9 @@ littleendian: true
                         CANServer::CanBus::AnalysisItemMap::iterator it = canbusInstance->dynamicAnalysisItems()->find(itemName);
                         if (it != canbusInstance->dynamicAnalysisItems()->end())
                         {
+                            //Ensure that if we are updating a built in var that we keep it built in
+                            analysisItem->builtIn = it->second->builtIn;
+
                             delete it->second;
                             canbusInstance->dynamicAnalysisItems()->erase(itemName);
                         }                        
@@ -746,12 +749,6 @@ littleendian: true
 
 
             //Static content related URL handling
-            server.on("/js/zepto.min.js", HTTP_GET,  [](AsyncWebServerRequest *request){
-                AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/js/zepto.min.js", "application/javascript");
-                response->addHeader("Cache-Control", "max-age=600");
-                request->send(response);
-            });
-
             server.on("/js/app.js", HTTP_GET,  [](AsyncWebServerRequest *request){
                 AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/js/app.js", "application/javascript");
                 //response->addHeader("Cache-Control", "max-age=600");
