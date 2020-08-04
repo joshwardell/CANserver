@@ -31,7 +31,8 @@ html, body {
 
 body {
   display: flex;
-  flex-direction: column;;
+  flex-direction: column;
+  font-family: sans-serif;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -110,6 +111,11 @@ nav a {
 }
 
 /* misc */
+
+a.clickable { 
+  cursor: pointer;
+}
+
 button {
   background: var(--color-5);
   border: 1px solid var(--color-1);
@@ -143,7 +149,7 @@ input[type=checkbox] {
 
 label {
   display: inline-block;
-  min-width: 130px;
+  min-width: 150px;
 }
 
 button:active {
@@ -192,9 +198,9 @@ footer {
 }
 
 #editorwrapper {
-margin-top: var(--medium);
-width: 100%;
-height: 60%;
+  margin-top: var(--medium);
+  width: 98%;
+  height: 80%;
 }
 span#scriptstate {
 padding: 4px;

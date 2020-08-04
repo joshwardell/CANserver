@@ -3,24 +3,15 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="icon" href="data:,">
         <link rel="stylesheet" type="text/css" href="/css/app.css">
+        <script src="/js/app.js"></script>
         
         <title>Network Config</title>
-        <script src="/js/zepto.min.js"></script>
-        
-        <style>
-          body {font-family: sans-serif;}
-          
-          label {
-            width: 150px;
-            display: inline-block;
-          }
-        </style>
     </head>
     <body>
       <main id="network">
           <div id="networkparams">
             <div id="loading">Loading...</div>
-            <form action="/network_save" method="POST" id="settingsform" style="display:none;">
+            <form action="/network_save" method="POST" id="settingsform" class="hidden">
               <label>External SSID: </label><input name="ssid" id="ssid"/> *To disable external wifi connectivity just make sure this box is empty<br>
               <label>External Password: </label><input name="password" id="password"/> *saved password isn't displayed.  If you leave it empty and hit save it will be removed<br>
               <br>
@@ -33,59 +24,62 @@
             </div>
           </div>
         </main>
-        
-        <script src="/js/app.js"></script>
-        
+
         <script>
-          function initialLoad() {
-            $.get('/network_update', function(response){
-              populateValues(response);
-            });
-          }
+          const networkEl = document.getElementById('network');
 
-          function populateValues(data) {
-            if ("networksettings" in data) {
-              Object.keys(data.networksettings).forEach((k, i) => {
-                $foundInput = $('input#' + k);
-                $foundInput.val(data.networksettings[k]);
-              });
-              
-              $('div#loading').hide();
-              $('form#settingsform').show();
-            }
-          }
-
-          function loadClients()
-          {
-            $.get('/network_stationlist', function(response){
-
-              if ("stations" in response) {
-                $('#stationlist').html('');
-
-                if (response.stations.length == 0)
-                {
-                  $('#stationlist').html('No Connected Clients');
-                }
-                else
-                {
-                  $list = $('<ul>');
-                  Object.keys(response.stations).forEach((k, i) => {
-                    var theStation = response.stations[k];
-
-                    $listItem = $('<li>').html(theStation.mac + " - " + theStation.ip);
-                    $list.append($listItem);  
+          if (networkEl) {
+            // load network data
+            getJSON('/network_update').then(data => {
+              if ('networksettings' in data) {
+                  Object.keys(data.networksettings).forEach(id => {
+                      const input = networkEl.querySelector('input#' + id);
+                      input && (input.value = data.networksettings[id]);
                   });
 
-                  $('#stationlist').html($list);
-                }
+                  hide(networkEl.querySelector('div#loading'));
+                  show(networkEl.querySelector('form#settingsform'));
               }
-
-              setTimeout("loadClients();", 10000);
             });
-          }
+          
+            let fetchingClients = false;
 
-          initialLoad();
-          loadClients();
+            const loadClients = () => {
+              const stationListEl = network.querySelector('#stationlist');
+              stationListEl.innerText = '';
+
+              // avoid building a big backlog of requests if server is slow
+              if (!fetchingClients) {
+                fetchingClients = true;
+
+                getJSON('/network_stationlist').then(data => {
+                  if ('stations' in data) {
+                    const stations = data.stations;
+
+                    if (stations.length === 0) {
+                      stationListEl.innerText = 'No connected clients';
+                    } else {
+                      const listEl = el('ul', {
+                        children: Object.keys(stations).map(stationId => {
+                          const station = stations[stationId];
+                          return station && el('li', { inner: station.mac + ' - ' + station.ip });
+                        }).filter(Boolean)
+                      })
+
+                      stationListEl.appendChild(listEl);
+                    }
+                  }
+                  fetchingClients = false;
+                })
+              }
+            }
+
+            // load clients data
+            loadClients();
+
+            // refresh clients data
+            setInterval(loadClients, 5000);
+          }
         </script>
     </body>
 </html>

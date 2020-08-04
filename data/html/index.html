@@ -5,18 +5,12 @@
       <link rel="stylesheet" type="text/css" href="/css/app.css">
         
       <title>CANServer</title>
-      <script src="/js/zepto.min.js"></script>
-
-      <style>body {font-family: sans-serif;}</style>
+      <script src="/js/app.js"></script>
     </head>
     <body>
       <main id="main">
-        
         <p>Build Date: %BUILD_DATE%</p>
-        
-        <button onclick="$.get('/restart');">Restart</button>
-      
+        <button onclick="fetch('/restart');">Restart</button>
       </main>
     </body>
-    <script src="/js/app.js"></script>
 </html>
