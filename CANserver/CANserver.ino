@@ -74,6 +74,8 @@ Average<unsigned long> _loopTime(20);
 Average<uint32_t> _memoryUsage(20);
 uint8_t memorySampleCounter = 0;
 
+extern bool RebootAfterUpdate;
+
 void loop()
 {
     unsigned long loopTimeStart = millis();
@@ -105,5 +107,11 @@ void loop()
         //Blink a heartbeat LED
         previousMillisLEDBlink = currentMillis;
         digitalWrite(LED2, !digitalRead(LED2));
+    }
+
+    if (RebootAfterUpdate)
+    {
+        delay(1000);
+        ESP.restart();
     }
 }

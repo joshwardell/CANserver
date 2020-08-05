@@ -4,7 +4,7 @@
 #include <esp_wifi.h>
 #include "esp_async_webserver/ESPAsyncWebServer.h"
 #include <SPIFFS.h>
-#include <Average.h>
+#include <Update.h>
 
 #include <iostream>
 #include <iomanip>
@@ -19,12 +19,14 @@
 #include "esp_async_webserver/AsyncJson.h"
 #include <SD.h>
 
-
+#include "Average.h"
 #include "SDCard.h"
 #include "CanBus.h"
 #include "Network.h"
 #include "Logging.h"
 #include "Displays.h"
+
+bool RebootAfterUpdate = false;
 
 #define ASSIGN_HELPER(keyname) if (keyParam->value() == #keyname)\
                     {\
@@ -759,6 +761,63 @@ littleendian: true
                 AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/css/app.css", "text/css");
                 response->addHeader("Cache-Control", "max-age=600");
                 request->send(response);
+            });
+
+
+
+            //handle OTA updats
+            //A command like this 
+            //curl --progress-bar --verbose -F "file=@firmware.bin" http://172.20.21.204/update | cat
+            //will send the update to the server
+
+            server.on("/update", HTTP_POST, [](AsyncWebServerRequest *request){
+                // the request handler is triggered after the upload has finished... 
+                // create the response, add header, and send response
+                AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", (Update.hasError())?"FAIL":"OK");
+                response->addHeader("Connection", "close");
+                response->addHeader("Access-Control-Allow-Origin", "*");
+                
+                request->send(response);
+
+            },[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
+                //Upload handler chunks in data
+                
+                if(index == 0) 
+                { 
+                    // if index == 0 then this is the first frame of data
+                    Serial.printf("UploadStart: %s\n", filename.c_str());
+                    Serial.setDebugOutput(true);
+                    
+                    // calculate sketch space required for the update
+                    if(!Update.begin(UPDATE_SIZE_UNKNOWN))
+                    {
+                        //start with max available size
+                        Update.printError(Serial);
+                    }
+                    //Update.runAsync(true); // tell the updaterClass to run in async mode
+                }
+
+                Serial.println(len);
+                //Write chunked data to the free sketch space
+                if(Update.write(data, len) != len)
+                {
+                    Update.printError(Serial);
+                }
+                
+                if(final)
+                { // if the final flag is set then this is the last frame of data
+                    if(Update.end(true))
+                    { 
+                        //true to set the size to the current progress
+                        Serial.printf("Update Success: %u B\nRebooting...\n", index+len);
+                        RebootAfterUpdate = true;
+                    } 
+                    else 
+                    {
+                        Update.printError(Serial);
+                    }
+                    Serial.setDebugOutput(false);
+                }
             });
 
             // Start server
