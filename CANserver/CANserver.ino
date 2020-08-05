@@ -40,7 +40,7 @@ void setup() {
     Serial.println();
     Serial.println();
     Serial.println();
-    log_i(__DATE__ " " __TIME__ " - " BUILD_REV);
+    Serial.println(__DATE__ " " __TIME__ " - " BUILD_REV);
     
     //Bring up storage devices    
     CANServer::SPIFFileSystem::setup();
@@ -74,16 +74,21 @@ Average<uint32_t> _memoryUsage(60);
 uint8_t memorySampleCounter = 0;
 
 extern bool RebootAfterUpdate;
+extern bool PauseAllProcessing;
 
 void loop()
 {
     unsigned long loopTimeStart = millis();
     //Deal with any pending OTA related work
     CANServer::Network::handle();
-    CANServer::SerialPorts::handle();   
 
-    CANServer::CanBus::instance()->handle();
+    if (!PauseAllProcessing)
+    {
+        CANServer::SerialPorts::handle();   
 
+        CANServer::CanBus::instance()->handle();
+    }
+    
     _loopTime.push(millis() - loopTimeStart);
 
     unsigned long currentMillis = millis();

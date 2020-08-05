@@ -27,6 +27,7 @@
 #include "Displays.h"
 
 bool RebootAfterUpdate = false;
+bool PauseAllProcessing = false;
 extern Average<uint32_t> _memoryUsage;
 
 #define ASSIGN_HELPER(keyname) if (keyParam->value() == #keyname)\
@@ -43,6 +44,19 @@ String _buildDate(const String& var)
 
     if(var == "BUILD_REV")
         return F("" BUILD_REV);
+
+    if (var == "SPIFFS_REV")
+    {
+        String revString = "unknown";
+        File spiffsrevFile = SPIFFS.open("/rev", "r");
+        if (spiffsrevFile)
+        {
+            revString = spiffsrevFile.readString();
+            spiffsrevFile.close();
+        }
+        
+        return revString;
+    }
 
     return String();
 }
@@ -834,6 +848,8 @@ littleendian: true
                 // if index == 0 then this is the first frame of data
                 Serial.printf("Update starting: %s\n", filename.c_str());
                 Serial.setDebugOutput(true);
+
+                PauseAllProcessing = true;
                 
                 // calculate sketch space required for the update
                 if(!Update.begin(UPDATE_SIZE_UNKNOWN, updateType))
@@ -863,6 +879,7 @@ littleendian: true
                     Update.printError(Serial);
                 }
                 Serial.setDebugOutput(false);
+                PauseAllProcessing = false;
             }
         }
     }
