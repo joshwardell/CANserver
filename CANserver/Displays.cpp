@@ -78,6 +78,7 @@ const char* CANServer::Displays::filenameForDisplay(const uint8_t displayId)
 
 void CANServer::Displays::setup()
 {
+    Serial.println("Setting up Display Scripting...");
     if (_luaState == NULL)
     {
         _luaState = luaL_newstate();
@@ -88,6 +89,8 @@ void CANServer::Displays::setup()
     this->loadScriptForDisplay(1);
     this->loadScriptForDisplay(2);
     this->loadScriptForDisplay(3);
+    
+    Serial.println("Done");
 }
 
 void CANServer::Displays::loadScriptForDisplay(const uint8_t displayId)

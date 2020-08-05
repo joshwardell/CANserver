@@ -27,8 +27,6 @@ bool scanActive = false;
 
 void WiFiEvent(WiFiEvent_t event)
 {
-    //Serial.printf("[WiFi-event] event: %d\n", event);
-
     switch (event) {
         case SYSTEM_EVENT_STA_DISCONNECTED:
             log_w("Disconnected from WiFi access point");
@@ -43,7 +41,7 @@ void WiFiEvent(WiFiEvent_t event)
             tryConnectExternal = false;
             channelToScanNext = MIN_SCAN_CHANNEL;
 
-            log_i("Connected to external WiFi network (%s): %s", _externalSSID.c_str(), WiFi.localIP().toString().c_str());
+            Serial.printf("Connected to external WiFi network (%s): %s\n", _externalSSID.c_str(), WiFi.localIP().toString().c_str());
             break;        
             
         case SYSTEM_EVENT_AP_STACONNECTED:
@@ -60,9 +58,6 @@ void WiFiEvent(WiFiEvent_t event)
 
 void _scanChannel(const uint8_t channel)
 {
-    //Serial.print("Scanning Channel: ");
-    //Serial.println(channel);
-
     wifi_scan_config_t config;
     config.ssid = 0;
     config.bssid = 0;
@@ -78,9 +73,9 @@ void _scanChannel(const uint8_t channel)
 
 void CANServer::Network::setup()
 {
-    log_i("Setting up Networking ...");
+    Serial.println("Setting up Networking ...");
 
-    log_i("WiFi MAC: %s", WiFi.macAddress().c_str());
+    Serial.printf("WiFi MAC: %s\n", WiFi.macAddress().c_str());
 
     _networkingPrefs.begin("Networking");
 
@@ -106,7 +101,7 @@ void CANServer::Network::setup()
     if (_externalSSID.length() > 0)
     {
         //We have an external SSID configuration.  Setup as WIFI AP/STA mode
-        log_i("Attempting to connect to external WiFi: %s", _externalSSID.c_str());
+        Serial.printf("Attempting to connect to external WiFi: %s\n", _externalSSID.c_str());
 
         //Lets try and find the external SSID we want to connect to
         tryConnectExternal = true;
@@ -117,7 +112,7 @@ void CANServer::Network::setup()
     //Now start up the Soft AP for the displays to connect to
     WiFi.softAP(displaySSID, displayPassword);
     IPAddress IP = WiFi.softAPIP();
-    log_i("Soft AP IP address: %s", IP.toString().c_str());
+    printf("Soft AP IP address: %s\n", IP.toString().c_str());
 
     //Make some changes to the DHCP server configuration so we don't serve a DNS server or Router to clients
     //This helps phones not loose their wider network when connected to the CANServer's wifi
@@ -128,7 +123,7 @@ void CANServer::Network::setup()
 
     tcpip_adapter_dhcps_start(TCPIP_ADAPTER_IF_AP);
 
-    log_i("Done");
+    Serial.println("Done");
 }
 
 unsigned long previousMillisWiFiReconnect = 0;
@@ -159,7 +154,7 @@ void CANServer::Network::handle()
             if (foundExternalSSID)
             {
                 //We can see the SSID we want to connec to.  Lets try and connect.
-                log_d("Found SSID we want to connect to.  Lets try...");
+                Serial.println("Found SSID we want to connect to.  Lets try...");
 
                 WiFi.begin(_externalSSID.c_str(), _externalPw.c_str());
 

@@ -22,7 +22,7 @@
 
 #include <Arduino.h>
 #ifdef ESP32
-#include <AsyncTCP.h>
+#include "asynctcp/AsyncTCP.h"
 #else
 #include <ESPAsyncTCP.h>
 #endif

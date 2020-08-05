@@ -37,6 +37,8 @@ CANServer::Logging* CANServer::Logging::instance()
 
 void CANServer::Logging::setup()
 {
+    Serial.println("Setting up Logging...");
+
     _prefs.begin("Logging");
 
     {
@@ -80,6 +82,8 @@ void CANServer::Logging::setup()
             this->enable(it->first);
         }
     }
+
+    Serial.println("Done");
 }
 
 void CANServer::Logging::saveConfiguraiton()

@@ -9,7 +9,6 @@
  */
 #include "SerialPorts.h"
 #include "Network.h"
-#include "OTA.h"
 #include "SDCard.h"
 #include "CanBus.h"
 #include "SPIFFileSystem.h"
@@ -48,7 +47,6 @@ void setup() {
 
     //Bring up network related components
     CANServer::Network::setup();
-    CANServer::OTA::setup();
 
     // Begin Panda UDP server
     panda.begin();
@@ -81,7 +79,6 @@ void loop()
     unsigned long loopTimeStart = millis();
     //Deal with any pending OTA related work
     CANServer::Network::handle();
-    CANServer::OTA::handle();
     CANServer::SerialPorts::handle();   
 
     CANServer::CanBus::instance()->handle();
@@ -97,7 +94,7 @@ void loop()
         if (memorySampleCounter++ > 10)
         {
             log_v("RAM Usage: mean: %0.2f, max: %d, min: %d, stdev: %0.2f", _memoryUsage.mean(), _memoryUsage.maximum(), _memoryUsage.minimum(), _memoryUsage.stddev());
-            log_v("Lopp Time: mean: %0.2f, max: %d, min: %d, stdev: %0.2f", _loopTime.mean(), _loopTime.maximum(), _loopTime.minimum(), _loopTime.stddev());
+            //log_v("Lopp Time: mean: %0.2f, max: %d, min: %d, stdev: %0.2f", _loopTime.mean(), _loopTime.maximum(), _loopTime.minimum(), _loopTime.stddev());
             memorySampleCounter = 0;
         }
     }

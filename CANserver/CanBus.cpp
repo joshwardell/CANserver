@@ -66,7 +66,7 @@ CANServer::CanBus::CanBus()
 
 void CANServer::CanBus::setup()
 {
-    log_i("Setting up Can-Bus...");
+    Serial.println("Setting up Can-Bus...");
 
     this->_loadDynamicAnalysisConfiguration();
 
@@ -83,7 +83,7 @@ void CANServer::CanBus::setup()
     canudp.begin();
 #endif
 
-    log_i("Done");
+    Serial.println("Done");
 }
 
 void CANServer::CanBus::startup()

@@ -2,8 +2,8 @@ import socket
 from struct import *
 import time
 
-targetIP = '192.168.4.1'
-#targetIP = '172.20.21.204'
+#targetIP = '192.168.4.1'
+targetIP = '172.20.21.204'
 targetPort = 9955
 
 

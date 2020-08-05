@@ -48,6 +48,8 @@ namespace CANServer
     namespace WebServer
     {
 
+        void _handleUpdateChunk(const int updateType, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+
         CANServer::CanBus::AnalysisItemMap::const_iterator analysisLoadIterator;
         uint8_t analysisLoadOutputState = 0;
         bool analysisLoadInitialOutput = false;
@@ -768,62 +770,82 @@ littleendian: true
             //handle OTA updats
             //A command like this 
             //curl --progress-bar --verbose -F "file=@firmware.bin" http://172.20.21.204/update | cat
+            //curl --progress-bar --verbose -F "file=@spiffs.bin" http://172.20.21.204/update_spiffs | cat
             //will send the update to the server
 
             server.on("/update", HTTP_POST, [](AsyncWebServerRequest *request){
                 // the request handler is triggered after the upload has finished... 
                 // create the response, add header, and send response
-                AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", (Update.hasError())?"FAIL":"OK");
+                AsyncWebServerResponse *response = request->beginResponse(Update.hasError() ? 400 : 200);
+
                 response->addHeader("Connection", "close");
                 response->addHeader("Access-Control-Allow-Origin", "*");
                 
                 request->send(response);
 
             },[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
-                //Upload handler chunks in data
-                
-                if(index == 0) 
-                { 
-                    // if index == 0 then this is the first frame of data
-                    Serial.printf("UploadStart: %s\n", filename.c_str());
-                    Serial.setDebugOutput(true);
-                    
-                    // calculate sketch space required for the update
-                    if(!Update.begin(UPDATE_SIZE_UNKNOWN))
-                    {
-                        //start with max available size
-                        Update.printError(Serial);
-                    }
-                    //Update.runAsync(true); // tell the updaterClass to run in async mode
-                }
+                _handleUpdateChunk(U_FLASH, request, filename, index, data, len, final);
+            });
 
-                Serial.println(len);
-                //Write chunked data to the free sketch space
-                if(Update.write(data, len) != len)
-                {
-                    Update.printError(Serial);
-                }
+            server.on("/update_spiffs", HTTP_POST, [](AsyncWebServerRequest *request){
+                // the request handler is triggered after the upload has finished... 
+                // create the response, add header, and send response
                 
-                if(final)
-                { // if the final flag is set then this is the last frame of data
-                    if(Update.end(true))
-                    { 
-                        //true to set the size to the current progress
-                        Serial.printf("Update Success: %u B\nRebooting...\n", index+len);
-                        RebootAfterUpdate = true;
-                    } 
-                    else 
-                    {
-                        Update.printError(Serial);
-                    }
-                    Serial.setDebugOutput(false);
-                }
+                AsyncWebServerResponse *response = request->beginResponse(Update.hasError() ? 400 : 200);
+
+                response->addHeader("Connection", "close");
+                response->addHeader("Access-Control-Allow-Origin", "*");
+                
+                request->send(response);
+
+            }, [](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+                _handleUpdateChunk(U_SPIFFS, request, filename, index, data, len, final);
             });
 
             // Start server
             server.begin();
 
             Serial.println("Done");
+        }
+
+        void _handleUpdateChunk(const int updateType, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
+        {
+            //Upload handler chunks in data            
+            if(index == 0) 
+            { 
+                // if index == 0 then this is the first frame of data
+                Serial.printf("Update starting: %s\n", filename.c_str());
+                Serial.setDebugOutput(true);
+                
+                // calculate sketch space required for the update
+                if(!Update.begin(UPDATE_SIZE_UNKNOWN, updateType))
+                {
+                    //start with max available size
+                    Update.printError(Serial);
+                }
+            }
+
+            //Write chunked data to the free sketch space
+            if(Update.write(data, len) != len)
+            {
+                Update.printError(Serial);
+            }
+            
+            if(final)
+            { // if the final flag is set then this is the last frame of data
+                if(Update.end(true))
+                { 
+                    //true to set the size to the current progress
+                    Serial.printf("Update success: %u B\nRebooting...\n", index+len);
+                    RebootAfterUpdate = true;
+                } 
+                else 
+                {
+                    Serial.println("Update failed");
+                    Update.printError(Serial);
+                }
+                Serial.setDebugOutput(false);
+            }
         }
     }
 }

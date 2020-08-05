@@ -197,6 +197,10 @@ footer {
   }
 }
 
+#update_status {
+  padding: 3px;
+}
+
 #editorwrapper {
   margin-top: var(--medium);
   width: 98%;
@@ -206,33 +210,38 @@ span#scriptstate {
 padding: 4px;
 display: inline-block;
 }
-span#scriptstate.good {
-color: #fff;
-background-color: #0A0;
+
+.good {
+  color: #fff;
+  background-color: #0A0;
 }
-span#scriptstate.bad {
-color: #fff;
-background-color: #F00;
+
+.bad {
+  color: #fff;
+  background-color: #F00;
 }
+
 span.item {
-display: inline-block;
-width: 200px;
+  display: inline-block;
+  width: 200px;
 }
 span.value {
-display: inline-block;
-width: 50px;
+  display: inline-block;
+  width: 50px;
 }
 textarea {
-tab-size: 2;
+  tab-size: 2;
 }
 
 #analysis tr td {
-text-align: center;
-padding: 2px 5px;
+  text-align: center;
+  padding: 2px 5px;
 }
+
 #analysis input.frameid, #analysis input.startbit, #analysis input.bitlength, #analysis input.factor, #analysis input.signaloffset {
-width:50px;
+  width:50px;
 }
+
 #analysis tbody tr:nth-child(even) {
-background-color: lightgrey; 
+  background-color: lightgrey; 
 }
