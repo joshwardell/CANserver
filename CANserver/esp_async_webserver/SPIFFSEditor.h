@@ -1,3 +1,5 @@
+#ifdef INCLUDE_SPIFFS_EDITOR
+
 #ifndef SPIFFSEditor_H_
 #define SPIFFSEditor_H_
 #include "ESPAsyncWebServer.h"
@@ -20,5 +22,7 @@ class SPIFFSEditor: public AsyncWebHandler {
     virtual void handleUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) override final;
     virtual bool isRequestHandlerTrivial() override final {return false;}
 };
+
+#endif
 
 #endif

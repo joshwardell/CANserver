@@ -45,6 +45,24 @@ const setupNav = () => {
       </select> \
     </span>";
   (document.getElementsByTagName('body')[0]).appendChild(footerObj);
+  
+  
+  //Setup themes
+  const themeSelectEl = document.getElementById('theme');
+
+  if (themeSelectEl) {
+    // activate persisted choice
+    const persistedSelect = localStorage.getItem('theme') || 'business';
+    activateColorTheme(persistedSelect);
+    themeSelectEl.value = persistedSelect;
+
+    // activate and persist new theme choice
+    themeSelectEl.onchange = e => {
+        const name = e.target.value;
+        activateColorTheme(name);
+        localStorage.setItem('theme', name);
+    };
+  }
 }
 
 document.addEventListener('DOMContentLoaded', setupNav);
@@ -79,22 +97,6 @@ const activateColorTheme = name => {
       document.documentElement.style.setProperty(color, colorTheme[color]);
     });
   }
-}
-    
-const themeSelectEl = document.getElementById('theme');
-
-if (themeSelectEl) {
-    // activate persisted choice
-    const persistedSelect = localStorage.getItem('theme') || 'business';
-    activateColorTheme(persistedSelect);
-    themeSelectEl.value = persistedSelect;
-
-    // activate and persist new theme choice
-    themeSelectEl.onchange = e => {
-        const name = e.target.value;
-        activateColorTheme(name);
-        localStorage.setItem('theme', name);
-    };
 }
 
 

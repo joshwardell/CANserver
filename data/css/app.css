@@ -245,3 +245,8 @@ textarea {
 #analysis tbody tr:nth-child(even) {
   background-color: lightgrey; 
 }
+
+.memoryusage:after {
+  content: " B";
+}
+}

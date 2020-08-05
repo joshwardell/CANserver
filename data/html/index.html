@@ -12,14 +12,23 @@
       <main id="main">
         <h1>CANServer</h1>
         <h4>Status</h4>
-        <p>Build Date: %BUILD_DATE%</p>
+        <label for="build_date">Build Date: </label><span id="build_date">%BUILD_DATE%</span><br>
+        <label for="build_rev">Build Rev: </label><span id="build_rev">%BUILD_REV%</span>
         
+        <h5>Memory Usage</h5>
+        <div id="memoryusage">
+          <label for="memoryusage_mean">Mean: </label><span class="memoryusage" id="memoryusage_mean"></span><br>
+          <label for="memoryusage_max">Max: </label><span class="memoryusage" id="memoryusage_max"></span><br>
+          <label for="memoryusage_min">Min: </label><span class="memoryusage" id="memoryusage_min"></span><br>
+          <label for="memoryusage_stddev">StdDev: </label><span class="memoryusage" id="memoryusage_stddev"></span><br>
+        </div>
         <br>
   
         <h4>Utilities</h4>
         <button onclick="fetch('/restart');">Restart</button>
 
 
+        <h5>Update</h5>
         <form method='POST' action='#' enctype='multipart/form-data' id='upload_form'>          
           <input type='file' name='update' id='update_file'>
           <button>Update</button><br>
@@ -30,83 +39,109 @@
 
         <script>
         
-        document.getElementById('upload_form').onsubmit = function (e) { uploadUpdate(e, this) };
-        
-        const updateError = () => {
-          alert('Please select a single file to update.  Either firmware.bin or spiffs.bin');
-        }
-        
-        const uploadUpdate = (e, theForm) => {
-            e.preventDefault();
-            
-            fileList = document.getElementById('update_file').files;
-            
-            if (fileList.length != 1) {
-              updateError();
-              return;
-            }
-            else
-            {
-              var updateURL = "/update";
-              startingMessage = "Uploading...";
-              //Check the filename and make sure it is one we support
-              if (fileList[0].name == "firmware.bin") {
-                updateURL = "/update";
-                startingMessage = "Uploading firmware...";
-              } else if (fileList[0].name == "spiffs.bin") {
-                updateURL = "/update_spiffs";
-                startingMessage = "Uploading spiffs...";
-              } else {
+          document.getElementById('upload_form').onsubmit = function (e) { uploadUpdate(e, this) };
+          
+          const updateError = () => {
+            alert('Please select a single file to update.  Either firmware.bin or spiffs.bin');
+          }
+          
+          const uploadUpdate = (e, theForm) => {
+              e.preventDefault();
+              
+              fileList = document.getElementById('update_file').files;
+              
+              if (fileList.length != 1) {
                 updateError();
                 return;
               }
-              
-              var progressEl = document.getElementById('update_progress');
-              progressEl.value = 0;
-              show(progressEl);
-              
-              var statusEl = document.getElementById('update_status');
-              statusEl.innerText = startingMessage;
-              show(statusEl);
-              removeClass(statusEl, 'bad');
-              removeClass(statusEl, 'good');
-              
-              var request = new XMLHttpRequest();
-              request.open('post', updateURL); 
-
-              request.upload.addEventListener('progress', function(e) {
-                var percent_complete = (e.loaded / e.total) * 100;
-
-                progressEl.value = percent_complete;
-                
-                if (percent_complete >= 100)
-                {
-                  //Upload complete.  Flashing now.
-                  statusEl.innerText = 'Flashing...';
-                  progressEl.removeAttribute('value');
+              else
+              {
+                var updateURL = "/update";
+                startingMessage = "Uploading...";
+                //Check the filename and make sure it is one we support
+                if (fileList[0].name == "firmware.bin") {
+                  updateURL = "/update";
+                  startingMessage = "Uploading firmware...";
+                } else if (fileList[0].name == "spiffs.bin") {
+                  updateURL = "/update_spiffs";
+                  startingMessage = "Uploading spiffs...";
+                } else {
+                  updateError();
+                  return;
                 }
-              });
-
-              // AJAX request finished event
-              request.addEventListener('load', function(e) {
-              	if (request.status == 200) {
-              	  //update completed.  Board is restarting...
-              	  statusEl.innerText = 'Update complete!  CANServer is restarting.';
-              	  addClass(statusEl, 'good');
-              	} else {
-              	  //update failed. 
-              	  statusEl.innerText = 'Update failed.';
-              	  addClass(statusEl, 'bad');
-              	}
-              	
-              	hide(progressEl);
-              });
-              
-              // send POST request to server side script
-              var data = new FormData(theForm);
-              request.send(data);
+                
+                var progressEl = document.getElementById('update_progress');
+                progressEl.value = 0;
+                show(progressEl);
+                
+                var statusEl = document.getElementById('update_status');
+                statusEl.innerText = startingMessage;
+                show(statusEl);
+                removeClass(statusEl, 'bad');
+                removeClass(statusEl, 'good');
+                
+                var request = new XMLHttpRequest();
+                request.open('post', updateURL); 
+  
+                request.upload.addEventListener('progress', function(e) {
+                  var percent_complete = (e.loaded / e.total) * 100;
+  
+                  progressEl.value = percent_complete;
+                  
+                  if (percent_complete >= 100)
+                  {
+                    //Upload complete.  Flashing now.
+                    statusEl.innerText = 'Flashing...';
+                    progressEl.removeAttribute('value');
+                  }
+                });
+  
+                // AJAX request finished event
+                request.addEventListener('load', function(e) {
+                	if (request.status == 200) {
+                	  //update completed.  Board is restarting...
+                	  statusEl.innerText = 'Update complete!  CANServer is restarting.';
+                	  addClass(statusEl, 'good');
+                	} else {
+                	  //update failed. 
+                	  statusEl.innerText = 'Update failed.';
+                	  addClass(statusEl, 'bad');
+                	}
+                	
+                	hide(progressEl);
+                });
+                
+                // send POST request to server side script
+                var data = new FormData(theForm);
+                request.send(data);
+              }
             }
-          }
+            
+            let fetchingMemory = false;
+
+            const loadMemory = () => {
+              // avoid building a big backlog of requests if server is slow
+              if (!fetchingMemory) {
+                fetchingMemory = true;
+              
+                var memoryusage_meanEl = document.getElementById('memoryusage_mean');
+                var memoryusage_maxEl = document.getElementById('memoryusage_max');
+                var memoryusage_minEl = document.getElementById('memoryusage_min');
+                var memoryusage_stddevEl = document.getElementById('memoryusage_stddev');
+              
+                getJSON('/memory').then(response => { 
+                  memoryusage_meanEl.innerText = response.mean.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+                  memoryusage_maxEl.innerText = response.max.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+                  memoryusage_minEl.innerText = response.min.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+                  memoryusage_stddevEl.innerText = response.stddev.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+                  
+                  fetchingMemory = false;
+                });
+              }
+            }
+            
+            loadMemory();
+            setInterval(loadMemory, 5000);
         </script>
       </main>
     </body>

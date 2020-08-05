@@ -1,3 +1,5 @@
+#ifdef INCLUDE_SPIFFS_EDITOR
+
 #include "SPIFFSEditor.h"
 #include <FS.h>
 
@@ -542,3 +544,4 @@ void SPIFFSEditor::handleUpload(AsyncWebServerRequest *request, const String& fi
     }
   }
 }
+#endif

@@ -11,7 +11,6 @@
 #include <sstream>
 
 //The SPIFFS editor taks up a lot of flash space.  For development purposes it is nice to have, but for production it should prob be comented out
-#define INCLUDE_SPIFFS_EDITOR
 #ifdef INCLUDE_SPIFFS_EDITOR
 #include "esp_async_webserver/SPIFFSEditor.h"
 #endif
@@ -19,6 +18,7 @@
 #include "esp_async_webserver/AsyncJson.h"
 #include <SD.h>
 
+#include "BuildRev.h"
 #include "Average.h"
 #include "SDCard.h"
 #include "CanBus.h"
@@ -27,6 +27,7 @@
 #include "Displays.h"
 
 bool RebootAfterUpdate = false;
+extern Average<uint32_t> _memoryUsage;
 
 #define ASSIGN_HELPER(keyname) if (keyParam->value() == #keyname)\
                     {\
@@ -37,10 +38,13 @@ AsyncWebServer server(80);
 
 String _buildDate(const String& var)
 {
-  if(var == "BUILD_DATE")
-    return F(__DATE__ " " __TIME__);
+    if(var == "BUILD_DATE")
+        return F(__DATE__ " " __TIME__);
 
-  return String();
+    if(var == "BUILD_REV")
+        return F("" BUILD_REV);
+
+    return String();
 }
 
 namespace CANServer
@@ -66,8 +70,22 @@ namespace CANServer
         #endif
 
             server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-                //TODO FIRMWARE DATE
                 request->send(SPIFFS, "/html/index.html", String(), false, _buildDate);
+            });
+
+            server.on("/memory", HTTP_GET, [](AsyncWebServerRequest *request){
+                AsyncJsonResponse * response = new AsyncJsonResponse();
+                JsonVariant& doc = response->getRoot();
+
+                //log_v("RAM Usage: mean: %0.2f, max: %d, min: %d, stdev: %0.2f", _memoryUsage.mean(), _memoryUsage.maximum(), _memoryUsage.minimum(), _memoryUsage.stddev());    
+
+                doc["mean"] = _memoryUsage.mean();
+                doc["max"] = _memoryUsage.maximum();
+                doc["min"] = _memoryUsage.minimum();
+                doc["stddev"] = _memoryUsage.stddev();
+
+                response->setLength();
+                request->send(response);
             });
 
 

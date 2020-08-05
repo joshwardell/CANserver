@@ -7,6 +7,7 @@
  *   Board: Node32s
  *   (must press IO0 right button to start programming)
  */
+#include "BuildRev.h"
 #include "SerialPorts.h"
 #include "Network.h"
 #include "SDCard.h"
@@ -39,7 +40,7 @@ void setup() {
     Serial.println();
     Serial.println();
     Serial.println();
-    log_i(__DATE__ " " __TIME__);
+    log_i(__DATE__ " " __TIME__ " - " BUILD_REV);
     
     //Bring up storage devices    
     CANServer::SPIFFileSystem::setup();
@@ -69,7 +70,7 @@ unsigned long previousMillisMemoryOutput = 0;
 unsigned long previousMillisLEDBlink = 0;
 
 Average<unsigned long> _loopTime(20);
-Average<uint32_t> _memoryUsage(20);
+Average<uint32_t> _memoryUsage(60);
 uint8_t memorySampleCounter = 0;
 
 extern bool RebootAfterUpdate;
