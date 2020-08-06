@@ -10,19 +10,22 @@ will display 88.0MPH:
 
 ![88mph](img/88mph.jpg)
 
-Note that values are divided by 10 with decimal and negative automatically drawn, and units start from the bottom-right corner so are sent in reverse order.
+Note that mode-0 values are divided by 10 with decimal and negative automatically drawn, and units start from the bottom-right corner so are sent in reverse order.
 
 Here is the current list of microDisplay command characters:
 
 - **m** display mode - see description of display modes below. Changing mode clears screen.
-- **v** value to display * 10
-- **u** units - uppercase characters starting from the bottom left (in reverse order)
+- **v** mode-0 value to display * 10
+- **u** mode-0 units - uppercase characters starting from the bottom left (in reverse order)
   - D is replaced with a degree symbol in the top-right
 - **b** bargraph - -24 to 24 LEDs to show on I2C bar graph meter, positive red, negative green
+  - 25 to 48 will draw a yellow bar `[rev >= 20200805]`
+  - Individual LEDs can be drawn with 101-124 (red) 201-224 (green) 301-324 (yellow) `[rev >= 20200805]`
 - **l** LEDs - sets the left and right GPIOs
   - I for input, 1 or 0 for output. Examples: 00l IIl I0l 10l
+  - Can PWM dim left LED with values 2-6  `[rev >= 20200805]`
   - Note the left GPIO is 3.3v output/tolerant, right GPIO is 5v output/tolerant
-  - these are typically pushbuttons or LEDs soldered on the left or right boards
+  - these are typically pushbuttons or LEDs soldered on the left or right boards, or relay on right board
 - **t** text - Text to be shown in text mode. Should be uppercase unless lower case is not used in this list
 - **s** size - font size multiplier for text
 - **c** color - specifies text or graph color (value mode is always white)
@@ -38,6 +41,7 @@ While the microDisplay defaults to the full-height value display, there are othe
 
 - **0** default graphical white value display
   - displays numeric value v signed with decimal plus units u
+  - values over 9999 will be chopped, can add 10000 to value to display without decimal `[rev >= 20200805]`
 - **1** Text display - prints text preceding the t in the string, font size s, color c, line-wrapped.
   - size 1 fits 17 characters x 5 lines, size 2 8char x 2lines, s3-5char x1, s4...
 - **5** left-scrolling graph of values v with color c on black
@@ -47,12 +51,12 @@ While the microDisplay defaults to the full-height value display, there are othe
   - value 0=none 1=left 2=right 3=both intended as an alternative to LEDs on extra boards for blindspot display etc
 - **99** this mode is shown when disconnected from the CANserver WiFi
   - Displays SSID and display number as configured by jumpers
-  - Small bottom line shows firmware rev date and status of left and right GPIOs
+  - Small bottom line shows firmware rev date, wifi state, and status of left and right GPIOs
 
 
-The display will http post the values of the left and right GPIOs to /post0 /post1 etc as "11" "01" etc. This will be followed by r and the revdate (starting with rev 20200621).
+The display will http post the values of the left and right GPIOs to /post0 /post1 etc as "11" "01" etc. This will be followed by r and the revdate  `[rev >= 20200621]`
 
-Document updated July 21 2020 for 20200719 firmware
+Document updated Aug 5 2020 for 20200805 firmware
 
 http://www.jwardell.com/microdisplay
 
