@@ -4,3 +4,4 @@
 .vscode/
 **/node_modules/
 do_build.sh
+build
