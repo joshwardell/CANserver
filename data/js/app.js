@@ -152,22 +152,121 @@ const bad = statusEl => {
     statusEl.classList.remove('good');
 };
 
-const keyEventWithGracefulTabs = (textarea, e) => {
+//Based off of https://github.com/wjbryant/taboverride
+const keyEventWithGracefulTabs = (target, e) => {
   const keyCode = e.keyCode || e.which;
-
+  const tab = "\t";
+  const tabLen = 1;
+  
   if (keyCode == 9) {
     e.preventDefault();
 
-    var start = textarea.selectionStart;
-    var end = textarea.selectionEnd;
+    var selStart = target.selectionStart;
+    var selEnd = target.selectionEnd;
+    var text = target.value;
+    var sel = text.slice(selStart, selEnd);
+    var initScrollTop = target.scrollTop;
 
-    // set textarea value to: text before caret + tab + text after caret
-    textarea.value = (textarea.value.substring(0, start)
-        + "\t"
-        + textarea.value.substring(end));
+    if (selStart !== selEnd && sel.indexOf('\n') !== -1) {
+      // for multiple lines, only insert / remove tabs from the beginning of each line
+      // find the start of the first selected line
+      if (selStart === 0 || text.charAt(selStart - 1) === '\n') {
+          // the selection starts at the beginning of a line
+          startLine = selStart;
+      } else {
+          // the selection starts after the beginning of a line
+          // set startLine to the beginning of the first partially selected line
+          // subtract 1 from selStart in case the cursor is at the newline character,
+          // for instance, if the very end of the previous line was selected
+          // add 1 to get the next character after the newline
+          // if there is none before the selection, lastIndexOf returns -1
+          // when 1 is added to that it becomes 0 and the first character is used
+          startLine = text.lastIndexOf('\n', selStart - 1) + 1;
+      }
+      
+      // find the end of the last selected line
+      if (selEnd === text.length || text.charAt(selEnd) === '\n') {
+          // the selection ends at the end of a line
+          endLine = selEnd;
+      } else if (text.charAt(selEnd - 1) === '\n') {
+          // the selection ends at the start of a line, but no
+          // characters are selected - don't indent this line
+          endLine = selEnd - 1;
+      } else {
+          // the selection ends before the end of a line
+          // set endLine to the end of the last partially selected line
+          endLine = text.indexOf('\n', selEnd);
+          if (endLine === -1) {
+              endLine = text.length;
+          }
+      }
+      
+      if (e.shiftKey == false) {
+        numTabs = 1; // for the first tab
 
-    // put caret at right position again
-    textarea.selectionStart = textarea.selectionEnd = start + 1;
+        // insert tabs at the beginning of each line of the selection
+        target.value = text.slice(0, startLine) + tab +
+            text.slice(startLine, endLine).replace(/\n/g, function () {
+                numTabs += 1;
+                return '\n' + tab;
+            }) + text.slice(endLine);
+
+        // set start and end points
+        // the selection start is always moved by 1 character
+        target.selectionStart = selStart + tabLen;
+        // move the selection end over by the total number of tabs inserted
+        target.selectionEnd = selEnd + (numTabs * tabLen);
+        target.scrollTop = initScrollTop;
+        
+      } else if (e.shiftKey == true) {
+        // if the untab key combo was pressed, remove tabs instead of inserting them
+        numTabs = 0;
+        
+        if (text.slice(startLine).indexOf(tab) === 0) {
+            // is this tab part of the selection?
+            if (startLine === selStart) {
+                // it is, remove it
+                sel = sel.slice(tabLen);
+            } else {
+                // the tab comes before the selection
+                preTab = tabLen;
+            }
+            startTab = tabLen;
+        }
+        
+        target.value = text.slice(0, startLine) + text.slice(startLine + preTab, selStart) +
+            sel.replace(new RegExp('\n' + tab, 'g'), function () {
+                numTabs += 1;
+                return '\n';
+            }) + text.slice(selEnd);
+        
+        // set start and end points
+        // set start first for Opera
+        target.selectionStart = selStart - preTab; // preTab is 0 or tabLen
+        // move the selection end over by the total number of tabs removed
+        target.selectionEnd = selEnd - startTab - numTabs;
+      }
+    } else {
+      // single line selection
+
+      // tab key combo - insert a tab
+      if (e.shiftKey == false) {
+          target.value = text.slice(0, selStart) + tab + text.slice(selEnd);
+          target.selectionEnd = target.selectionStart = selStart + tabLen;
+          target.scrollTop = initScrollTop;
+      } else if (e.shiftKey == true) {
+          // if the untab key combo was pressed, remove a tab instead of inserting one
+
+          // if the character before the selection is a tab, remove it
+          if (text.slice(selStart - tabLen).indexOf(tab) === 0) {
+              target.value = text.slice(0, selStart - tabLen) + text.slice(selStart);
+
+              // set start and end points
+              target.selectionEnd = target.selectionStart = selStart - tabLen;
+              target.scrollTop = initScrollTop;
+          }
+      }
+    }
   }
 }
 

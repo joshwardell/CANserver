@@ -153,9 +153,9 @@
                           logentryEl.appendChild(deleteLinkEl);
 
                           const fileSizeSpanEl = el('span', {
-                            className: 'indent',
+                            className: 'indent logsize',
                             id: entryId + 'size',
-                            inner: '[ size: ' + loginfo.filesize + ' ]'
+                            inner: loginfo.filesize.toLocaleString(undefined, { maximumFractionDigits: 0, minimumFractionDigits: 0 }) 
                           });
 
                           logentryEl.appendChild(fileSizeSpanEl);
@@ -165,7 +165,7 @@
                       } else {
                         const spaceEl = document.getElementById(entryId + 'size');
                         if (spaceEl) {
-                          spaceEl.innerText = '[ size: ' + loginfo.filesize + ' ]';
+                          spaceEl.innerText = loginfo.filesize.toLocaleString(undefined, { maximumFractionDigits: 0, minimumFractionDigits: 0 });
                         }
                       }
                   }

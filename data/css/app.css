@@ -204,7 +204,7 @@ footer {
 #editorwrapper {
   margin-top: var(--medium);
   width: 98%;
-  height: 80%;
+  height: 70vh;
 }
 span#scriptstate {
 padding: 4px;
@@ -246,7 +246,10 @@ textarea {
   background-color: lightgrey; 
 }
 
-.memoryusage:after {
+.memoryusage:after, .logsize:after {
   content: " B";
 }
+
+span#saveStatus {
+  padding:5px;
 }

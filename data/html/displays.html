@@ -30,13 +30,17 @@
           StdDev: <span id="stddevtime"></span>
         </div>
         
-        <div id="editorwrapper">
+        <div id="editorwrapper" style="overflow: auto;">
           <textarea id="displayscript" disabled spellcheck="false"></textarea>
         </div>
+        
         <br>
         <button id="save" class="hidden">Save</button> <span id="saveStatus"></span>
       </main>
       <script>
+        var scriptChanged = false;
+        var currentDisplayId = 0;
+        
         const displaysEl = document.getElementById('displays');
         if (displaysEl) {
           
@@ -50,6 +54,17 @@
           }
           
           const loadDisplayScript = displayId => {
+            if (scriptChanged) {
+              var dontAbandonChanges = confirm("It looks like you have been editing this script. Do you want to abandon those changes?");
+                            
+              if (!dontAbandonChanges) {
+                //Fix the select box since it will have changed an no longer reflects the script we are looking at
+                selectEl.selectedIndex = currentDisplayId;
+                return;
+              }
+            }
+            
+            currentDisplayId = displayId;
             clearSaveStatus();
             
             hide(displaysSaveButtonEl);
@@ -65,6 +80,8 @@
               
               show(displaysSaveButtonEl);
               loadStatus(displayId);
+              
+              scriptChanged = false;
             });
           }
           
@@ -101,6 +118,8 @@
             
             const savingStatusEl = document.getElementById('saveStatus');
             savingStatusEl.innerText = "";
+            removeClass(savingStatusEl, 'bad');
+            removeClass(savingStatusEl, 'good');
           }
           
           const saveScript = displayId => {
@@ -116,7 +135,10 @@
               postData('/display_save', postInfo).then((r) => {
                 if (r.ok) {
                   savingStatusEl.innerText = "Saved!";
+                  addClass(savingStatusEl, 'good');
+                  scriptChanged = false;
                 } else {
+                  addClass(savingStatusEl, 'bad');
                   savingStatusEl.innerText = "Error Saving";
                 }
                 
@@ -135,6 +157,10 @@
           // handle <tab> input
           displaysScriptEl.onkeydown = function (e) {
               return keyEventWithGracefulTabs(this, e);
+          }
+          
+          displaysScriptEl.onchange = function (e) {
+            scriptChanged = true;
           }
           
           displaysSaveButtonEl.onclick = () => {
