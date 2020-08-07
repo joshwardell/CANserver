@@ -3,10 +3,17 @@
 #include "CanBus.h"
 
 
+//Container for user defined variables
+typedef std::map<std::string, float> UserDefinedVarMap;
+typedef std::pair<std::string, float> UserDefinedVarPair;
+UserDefinedVarMap _userDefinedVars;
+
 
 extern "C" {
     static int lua_wrapper_print (lua_State *L);
     static int lua_wrapper_getvar(lua_State *L);
+    static int lua_wrapper_setvar(lua_State *L);
+    static int lua_wrapper_getanalysisvar(lua_State *L);
 }
 
 
@@ -126,6 +133,9 @@ void CANServer::LUAHelpers::setupLUAState(lua_State *L)
     //Register some handlers we provide
     lua_register(L, "print", lua_wrapper_print);
     lua_register(L, "CANServer_getVar", lua_wrapper_getvar);
+    lua_register(L, "CANServer_setVar", lua_wrapper_setvar);
+    lua_register(L, "CANServer_clearVar", lua_wrapper_clearvar);
+    lua_register(L, "CANServer_getAnalysisVar", lua_wrapper_getanalysisvar);
 }
 
 
@@ -154,7 +164,104 @@ extern "C" {
         return 0;
     }
 
+    static int lua_wrapper_clearvar(lua_State *L) {
+       int n = lua_gettop(L);
+        if (n != 1)
+        {
+            //We expect a single argument - The variable name
+            return luaL_error(L, "1 argument expected (<variable name>)");
+        }
+        else
+        {
+            if (lua_type(L, 1) == LUA_TSTRING)
+            {
+                const char* varName = lua_tostring(L, 1);
+                UserDefinedVarMap::iterator item_it = _userDefinedVars.find(varName);
+                if (item_it != _userDefinedVars.end())
+                {
+                    _userDefinedVars.erase(item_it);
+                }
+                return 0;
+            }
+            else
+            {
+                return luaL_error(L, "Argument expected to be a string");
+            }
+        }
+    }
+
+
     static int lua_wrapper_getvar(lua_State *L) {
+       int n = lua_gettop(L);
+        if (n != 1)
+        {
+            //We expect a single argument - The variable name
+            return luaL_error(L, "1 argument expected (<variable name>)");
+        }
+        else
+        {
+            if (lua_type(L, 1) == LUA_TSTRING)
+            {
+                const char* varName = lua_tostring(L, 1);
+
+                UserDefinedVarMap::iterator item_it = _userDefinedVars.find(varName);
+                if (item_it != _userDefinedVars.end())
+                {
+                    lua_pushnumber(L, item_it->second);
+                }
+                else
+                {
+                    //Nothing found.  Just return a 0
+                    lua_pushnumber(L, 0);
+                }
+                return 1;
+            }
+            else
+            {
+                return luaL_error(L, "Argument expected to be a string");
+            }
+        }
+    }
+
+    static int lua_wrapper_setvar(lua_State *L) {
+        int n = lua_gettop(L);
+        if (n != 2)
+        {
+            //We expect a single argument - The variable name
+            return luaL_error(L, "2 argument expected (<variable name>, <value>)");
+        } 
+        else
+        {
+            if (lua_type(L, 1) == LUA_TSTRING)
+            {
+                if (lua_type(L, 2) == LUA_TNUMBER)
+                {
+                    const char* varName = lua_tostring(L, 1);
+
+                    UserDefinedVarMap::iterator item_it = _userDefinedVars.find(varName);
+                    if (item_it == _userDefinedVars.end())
+                    {
+                        std::pair<UserDefinedVarMap::iterator, bool> returnPair = _userDefinedVars.insert(UserDefinedVarPair(varName, 0));
+                        item_it = returnPair.first;
+                    }
+
+                    item_it->second = lua_tonumber(L, 2);
+                }
+                else
+                {
+                    return luaL_error(L, "Argument 2 expected to be a number");
+                }
+            }
+            else
+            {
+                return luaL_error(L, "Argument 1 expected to be a string");
+            }
+        }
+
+        return 0;
+    } 
+
+    static int lua_wrapper_getanalysisvar(lua_State *L) {
         int n = lua_gettop(L);
         if (n != 1)
         {
@@ -175,7 +282,7 @@ extern "C" {
                     }
                     else
                     {
-                        //Check to see if this is a processed item
+                        //Nothing found.  Just return a 0
                         lua_pushnumber(L, 0);
                     }
                     return 1;
