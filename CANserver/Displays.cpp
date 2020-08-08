@@ -1,6 +1,7 @@
 #include "Displays.h"
 
 #include "LUAHelpers.h"
+#include "CanBus.h"
 
 #define DISPLAY0_FILENAME "/displays/0.lua"
 #define DISPLAY0_FUNCTIONNAME "runDisplay0"
@@ -10,6 +11,8 @@
 #define DISPLAY2_FUNCTIONNAME "runDisplay2"
 #define DISPLAY3_FILENAME "/displays/3.lua"
 #define DISPLAY3_FUNCTIONNAME "runDisplay3"
+
+#define OFF_DISPLAY_STRING "1m t0b1000r"
 
 CANServer::Displays* CANServer::Displays::_instance = NULL;
 
@@ -223,6 +226,13 @@ const char* CANServer::Displays::renderDisplay(const uint8_t displayId)
     {
         return "";
     }
+
+    if (CANServer::CanBus::instance()->DisplayOnAnalysisItem()->lastValue == 0)
+    {
+        //Displays should be off.  Return the off string
+        return OFF_DISPLAY_STRING;
+    }
+
 
     std::string *stringToReturn = NULL;
     const char* functionName = NULL;

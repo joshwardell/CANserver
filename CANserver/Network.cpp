@@ -41,7 +41,7 @@ void WiFiEvent(WiFiEvent_t event)
             tryConnectExternal = false;
             channelToScanNext = MIN_SCAN_CHANNEL;
 
-            Serial.printf("Connected to external WiFi network (%s): %s\n", _externalSSID.c_str(), WiFi.localIP().toString().c_str());
+            Serial.printf("Connected to external WiFi network (%s): %s\r\n", _externalSSID.c_str(), WiFi.localIP().toString().c_str());
             break;        
             
         case SYSTEM_EVENT_AP_STACONNECTED:
@@ -75,7 +75,7 @@ void CANServer::Network::setup()
 {
     Serial.println("Setting up Networking ...");
 
-    Serial.printf("WiFi MAC: %s\n", WiFi.macAddress().c_str());
+    Serial.printf("WiFi MAC: %s\r\n", WiFi.macAddress().c_str());
 
     _networkingPrefs.begin("Networking");
 
@@ -101,7 +101,7 @@ void CANServer::Network::setup()
     if (_externalSSID.length() > 0)
     {
         //We have an external SSID configuration.  Setup as WIFI AP/STA mode
-        Serial.printf("Attempting to connect to external WiFi: %s\n", _externalSSID.c_str());
+        Serial.printf("Attempting to connect to external WiFi: %s\r\n", _externalSSID.c_str());
 
         //Lets try and find the external SSID we want to connect to
         tryConnectExternal = true;
@@ -112,7 +112,7 @@ void CANServer::Network::setup()
     //Now start up the Soft AP for the displays to connect to
     WiFi.softAP(displaySSID, displayPassword);
     IPAddress IP = WiFi.softAPIP();
-    printf("Soft AP IP address: %s\n", IP.toString().c_str());
+    printf("Soft AP IP address: %s\r\n", IP.toString().c_str());
 
     //Make some changes to the DHCP server configuration so we don't serve a DNS server or Router to clients
     //This helps phones not loose their wider network when connected to the CANServer's wifi

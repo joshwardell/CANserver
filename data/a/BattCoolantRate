@@ -1,10 +1,10 @@
 {
-    "n": "BattCoolantRate",
     "fid": 577,
     "sb": 0,
     "bl": 9,
     "f": 0.1,
     "so": 0,
     "s": false,
-    "bo": true
+    "bo": true,
+    "v": 1
 }

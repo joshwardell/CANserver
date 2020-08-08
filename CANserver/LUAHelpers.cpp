@@ -13,6 +13,7 @@ extern "C" {
     static int lua_wrapper_print (lua_State *L);
     static int lua_wrapper_getvar(lua_State *L);
     static int lua_wrapper_setvar(lua_State *L);
+    static int lua_wrapper_clearvar(lua_State *L);
     static int lua_wrapper_getanalysisvar(lua_State *L);
 }
 

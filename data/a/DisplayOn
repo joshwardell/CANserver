@@ -1,5 +1,4 @@
 {
-    "n": "DisplayOn",
     "fid": 12,
     "sb": 5,
     "bl": 1,
@@ -7,5 +6,6 @@
     "so": 0,
     "s": false,
     "bo": true,
-    "bi": true
+    "bi": true,
+    "v": 1
 }

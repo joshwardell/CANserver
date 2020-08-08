@@ -1,10 +1,10 @@
 {
-    "n": "BattAmps",
     "fid": 306,
     "sb": 16,
     "bl": 16,
     "f": -0.1,
     "so": 0,
     "s": true,
-    "bo": true
+    "bo": true,
+    "v": 1
 }

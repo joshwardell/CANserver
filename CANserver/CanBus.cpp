@@ -188,7 +188,6 @@ void CANServer::CanBus::saveDynamicAnalysisFile(const char* itemName)
         StaticJsonDocument<256> doc;
 
         // Set the values in the document
-        doc["n"] = it->first;
         doc["fid"] =  analysisItem->frameId;
         doc["sb"] =  analysisItem->startBit;
         doc["bl"] =  analysisItem->bitLength;
@@ -218,7 +217,6 @@ void CANServer::CanBus::deleteDynamicAnalysisFile(const char* itemName)
 void CANServer::CanBus::resolveLookups()
 {
     _displayOnAnalysisItem = NULL;
-    _distanceUnitMilesAnalysisItem = NULL;
     _quickFrameIdLookup_analysisItems.clear();
 
     //Sort out our quick look strcuture for processing
@@ -229,10 +227,6 @@ void CANServer::CanBus::resolveLookups()
         {
             _displayOnAnalysisItem = it->second;
         } 
-        else if (it->first == "DistanceUnitMiles")
-        {
-            _distanceUnitMilesAnalysisItem = it->second;
-        }
         
         AnalysisItemFrameLookupMap::iterator lookupIt = _quickFrameIdLookup_analysisItems.find(it->second->frameId);
         if (lookupIt == _quickFrameIdLookup_analysisItems.end())
@@ -278,7 +272,8 @@ void CANServer::CanBus::_loadDynamicAnalysisConfiguration()
 
             newAnalysisItem->builtIn = doc["bi"] || false;
             
-            const char* name = doc["n"];
+            const char* name = fileName.c_str() + 3;
+            Serial.println(name);
             _analysisItems.insert(AnalysisItemPair(name, newAnalysisItem));
         }
 

@@ -59,7 +59,6 @@ namespace CANServer
 
         //Some pointeres to items that get used frequently (so we don't want to have to hunt for them every time)
         AnalysisItem* DisplayOnAnalysisItem() { return _displayOnAnalysisItem; }
-        AnalysisItem* DistanceUnitMilesAnalysisItem() { return _distanceUnitMilesAnalysisItem; }
         
 
     private:
@@ -81,7 +80,6 @@ namespace CANServer
 
         //Some pointers to keep track of some special built in items that the system needs to run right.
         AnalysisItem *_displayOnAnalysisItem;
-        AnalysisItem *_distanceUnitMilesAnalysisItem;
     };
 }
 #endif
