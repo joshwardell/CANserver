@@ -69,8 +69,8 @@ namespace CANServer
         CAN_FRAME _workingCANFrame;
 
         void _processFrame(CAN_FRAME *frame, const uint8_t busId);
-        void _processStaticAnalysis(CAN_FRAME *frame);
-        void _processDynamicAnalysis(CAN_FRAME *frame);
+        void _processStaticAnalysis(CAN_FRAME *frame, const uint8_t busId);
+        void _processDynamicAnalysis(CAN_FRAME *frame, const uint8_t busId);
 
         void _loadDynamicAnalysisConfiguration();
 

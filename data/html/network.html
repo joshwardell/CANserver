@@ -11,9 +11,11 @@
       <main id="network">
           <div id="networkparams">
             <div id="loading">Loading...</div>
+            <h3>External Wireless Connection</h3>
+            <label for="statusspan">Status:</label><span style="padding:3px;" id="statusspan">Loading...</span><br>
             <form action="/network_save" method="POST" id="settingsform" class="hidden">
-              <label>External SSID: </label><input name="ssid" id="ssid"/> *To disable external wifi connectivity just make sure this box is empty<br>
-              <label>External Password: </label><input name="password" id="password"/> *saved password isn't displayed.  If you leave it empty and hit save it will be removed<br>
+              <label>SSID: </label><input name="ssid" id="ssid"/> *To disable external wifi connectivity just make sure this box is empty<br>
+              <label>Password: </label><input name="password" id="password"/> *Saved password isn't displayed.  If you leave it empty and hit save it will be removed<br>
               <br>
               <button type="submit">Save</button>
             </form>
@@ -70,15 +72,49 @@
                     }
                   }
                   fetchingClients = false;
-                })
+                });
+              }
+            }
+            
+            let fetchingStatus = false;
+
+            const loadStatus = () => {
+              // avoid building a big backlog of requests if server is slow
+              if (!fetchingStatus) {
+                fetchingStatus = true;
+
+                getJSON('/network_status').then(data => {
+                  
+                  var statusEl = document.getElementById("statusspan");
+                  removeClass(statusEl, 'good');
+                  removeClass(statusEl, 'bad');
+                  
+                  if ("externalStatus" in data) {
+                    if (data.externalStatus == true) {
+                      statusEl.innerText = "Connected";
+                      if ("externalIP" in data) {
+                        statusEl.innerText += " - " + data.externalIP;
+                      }
+                      addClass(statusEl, 'good');
+                    } else {
+                      statusEl.innerText = "Not Connected";
+                    }
+                  }
+                  
+                  fetchingStatus = false;
+                });
               }
             }
 
             // load clients data
             loadClients();
+            loadStatus();
 
             // refresh clients data
             setInterval(loadClients, 5000);
+            
+            //refresh status data
+            setInterval(loadStatus, 5000);
           }
         </script>
     </body>

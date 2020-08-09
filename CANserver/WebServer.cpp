@@ -224,8 +224,8 @@ namespace CANServer
 
                 JsonObject networksettings = doc.createNestedObject("networksettings");
                 
-                networksettings["ssid"] = CANServer::Network::getExternalWifiSSID();                
-                
+                networksettings["ssid"] = CANServer::Network::getExternalWifiSSID();               
+
                 response->setLength();
                 request->send(response);
             }); 
@@ -270,32 +270,18 @@ namespace CANServer
                 request->send(response);                
             });
 
-           
-
-
-
-
-            //Debug related url handling
-            server.on("/debug", HTTP_GET, [](AsyncWebServerRequest *request) {
-                request->send(SPIFFS, "/html/debug.html");
-            });
-
-            server.on("/debug_update", HTTP_GET, [](AsyncWebServerRequest *request) {
+            server.on("/network_status", HTTP_GET, [](AsyncWebServerRequest *request) {
                 AsyncJsonResponse * response = new AsyncJsonResponse();
                 JsonVariant& doc = response->getRoot();
 
-                JsonObject dynamicanalysisitems = doc.createNestedObject("dynamicanalysisitems");
-                for (CANServer::CanBus::AnalysisItemMap::const_iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->begin(); it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end(); it++)
-                {
-                    CANServer::CanBus::AnalysisItem *analysisItem = it->second;
-                    dynamicanalysisitems[it->first] = analysisItem->lastValue;
+                doc["externalStatus"] = CANServer::Network::getExternalStatus();
+                if (CANServer::Network::getExternalStatus()) {
+                    doc["externalIP"] = WiFi.localIP().toString();
                 }
 
                 response->setLength();
-                request->send(response);
-            });    
-
-
+                request->send(response);        
+            });
 
 
 
@@ -486,6 +472,7 @@ else\
             server.on("/analysis_save", HTTP_POST, [](AsyncWebServerRequest * request) {                
 /*
 state: update
+origName: TestVolts1
 name: TestVolts
 frameid: 306
 startbit: 0
@@ -496,6 +483,7 @@ issigned: false
 littleendian: true
 */
                 if(request->hasParam("state", true) &&
+                    request->hasParam("origName", true) &&
                     request->hasParam("name", true) &&
                     request->hasParam("frameid", true) &&
                     request->hasParam("startbit", true) &&
@@ -504,6 +492,7 @@ littleendian: true
                     request->hasParam("signaloffset", true))
                 {
                     std::string itemName = request->getParam("name", true)->value().c_str();
+                    std::string origItemName = request->getParam("origName", true)->value().c_str();
 
                     CANServer::CanBus::AnalysisItem *analysisItem = new CANServer::CanBus::AnalysisItem();
                     analysisItem->frameId = atoi(request->getParam("frameid", true)->value().c_str());
@@ -536,15 +525,19 @@ littleendian: true
 
                     if(request->hasParam("state", true) && request->getParam("state", true)->value() == "update")
                     {
+                        //We use the origItemName field here just incase the user has changed the name.  The orig name comes from the HTML dom.
+
                         //Clean up the old entry so we can replace it
-                        CANServer::CanBus::AnalysisItemMap::iterator it = canbusInstance->dynamicAnalysisItems()->find(itemName);
+                        CANServer::CanBus::AnalysisItemMap::iterator it = canbusInstance->dynamicAnalysisItems()->find(origItemName);
                         if (it != canbusInstance->dynamicAnalysisItems()->end())
                         {
                             //Ensure that if we are updating a built in var that we keep it built in
                             analysisItem->builtIn = it->second->builtIn;
 
                             delete it->second;
-                            canbusInstance->dynamicAnalysisItems()->erase(itemName);
+                            canbusInstance->dynamicAnalysisItems()->erase(origItemName);
+
+                            canbusInstance->deleteDynamicAnalysisFile(origItemName.c_str());
                         }                        
                     }
 

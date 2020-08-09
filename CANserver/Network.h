@@ -10,6 +10,8 @@ namespace CANServer
         void setup();
         void handle();
 
+        const bool getExternalStatus();
+
         void setExternalWifiSSID(const String value);
         void setExternalWifiPassword(const String value);
 

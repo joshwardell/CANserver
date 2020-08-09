@@ -16,6 +16,7 @@ Preferences _networkingPrefs;
 String _externalSSID = "";
 String _externalPw = "";
 
+bool _externalConnectionStatus = false;
 
 #define MIN_SCAN_CHANNEL 1
 #define MAX_SCAN_CHANNEL 14
@@ -35,11 +36,15 @@ void WiFiEvent(WiFiEvent_t event)
             tryConnectExternal = true;
             channelToScanNext = MIN_SCAN_CHANNEL;
 
+            _externalConnectionStatus = false;
+
             break;
         case SYSTEM_EVENT_STA_GOT_IP:
             //We connected externally and got an ip.  Don't try again
             tryConnectExternal = false;
             channelToScanNext = MIN_SCAN_CHANNEL;
+
+            _externalConnectionStatus = true;
 
             Serial.printf("Connected to external WiFi network (%s): %s\r\n", _externalSSID.c_str(), WiFi.localIP().toString().c_str());
             break;        
@@ -201,6 +206,11 @@ void CANServer::Network::handle()
             previousMillisWiFiReconnect = currentMillis;
         }
     }
+}
+
+const bool CANServer::Network::getExternalStatus()
+{
+    return _externalConnectionStatus;
 }
 
 

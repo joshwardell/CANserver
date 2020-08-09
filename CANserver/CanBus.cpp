@@ -125,8 +125,8 @@ void CANServer::CanBus::_processFrame(CAN_FRAME *frame, const uint8_t busId)
     //Let the logging code deal with this frame as well
     CANServer::Logging::instance()->handleMessage(frame, busId);
 
-    this->_processStaticAnalysis(frame);
-    this->_processDynamicAnalysis(frame);
+    this->_processStaticAnalysis(frame, busId);
+    this->_processDynamicAnalysis(frame, busId);
 }
 
 const uint32_t _SwapEndian32 (const uint8_t *pos)
@@ -141,7 +141,7 @@ const uint32_t _SwapEndian32 (const uint8_t *pos)
     return(return_val);
 }
 
-void CANServer::CanBus::_processStaticAnalysis(CAN_FRAME *frame)
+void CANServer::CanBus::_processStaticAnalysis(CAN_FRAME *frame, const uint8_t busId)
 {
     switch(frame->id)
     {                        
@@ -273,7 +273,6 @@ void CANServer::CanBus::_loadDynamicAnalysisConfiguration()
             newAnalysisItem->builtIn = doc["bi"] || false;
             
             const char* name = fileName.c_str() + 3;
-            Serial.println(name);
             _analysisItems.insert(AnalysisItemPair(name, newAnalysisItem));
         }
 
@@ -284,7 +283,7 @@ void CANServer::CanBus::_loadDynamicAnalysisConfiguration()
 }
 
 
-void CANServer::CanBus::_processDynamicAnalysis(CAN_FRAME *frame)
+void CANServer::CanBus::_processDynamicAnalysis(CAN_FRAME *frame, const uint8_t busId)
 {
     if (!_dynamicAnalysisPaused)
     {

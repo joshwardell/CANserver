@@ -137,6 +137,7 @@
                   alertString = itemName + ' analysis item has been created.  Please save it if you wish to keep the changes.'
                 }
                 
+                foundItemRow.querySelector('input.name').value = itemName;
                 foundItemRow.querySelector('input.frameid').value = '0x' + decToHex(parsedJson.fid, 3);
                 foundItemRow.querySelector('input.startbit').value = parsedJson.sb;
                 foundItemRow.querySelector('input.bitlength').value = parsedJson.bl;
@@ -365,31 +366,38 @@
           const saveItem = (rowhref) => {
             let rowToWorkOn = rowhref.parentElement.parentElement;
             const newName = rowToWorkOn.querySelector('input.name').value;
+            
+            //Check the format of newName to make sure its valid chars for what we use it for
+            if (/^[a-zA-Z0-9-_]+$/.test(newName)) {
 
-            let foundNameCount = 0;
-            analysis.querySelectorAll('input.name').forEach(obj => {
-              if (obj.value == newName) {
-                foundNameCount++;
-              }
-            });
-
-            if (foundNameCount == 1) {
-              let postInfo = new FormData();
-              postInfo.append('state', rowToWorkOn.getAttribute('id') === "----new----" ? 'new' : 'update');
-              postInfo.append('name', newName);
-              postInfo.append('frameid', hexToDec(rowToWorkOn.querySelector('input.frameid').value.substr(2)));
-              postInfo.append('startbit', Number(rowToWorkOn.querySelector('input.startbit').value));
-              postInfo.append('bitlength', Number(rowToWorkOn.querySelector('input.bitlength').value));
-              postInfo.append('factor', Number(rowToWorkOn.querySelector('input.factor').value));
-              postInfo.append('signaloffset', Number(rowToWorkOn.querySelector('input.signaloffset').value));
-              postInfo.append('issigned', rowToWorkOn.querySelector('input.issigned').checked);
-              postInfo.append('littleendian', rowToWorkOn.querySelector('input.littleendian').checked);
-              
-              postData('/analysis_save', postInfo).then(() => {
-                window.location = "/analysis";
+              let foundNameCount = 0;
+              analysis.querySelectorAll('input.name').forEach(obj => {
+                if (obj.value == newName) {
+                  foundNameCount++;
+                }
               });
+  
+              if (foundNameCount == 1) {
+                let postInfo = new FormData();
+                postInfo.append('state', rowToWorkOn.getAttribute('id') === "----new----" ? 'new' : 'update');
+                postInfo.append('origName', rowToWorkOn.getAttribute('id'));
+                postInfo.append('name', newName);
+                postInfo.append('frameid', hexToDec(rowToWorkOn.querySelector('input.frameid').value.substr(2)));
+                postInfo.append('startbit', Number(rowToWorkOn.querySelector('input.startbit').value));
+                postInfo.append('bitlength', Number(rowToWorkOn.querySelector('input.bitlength').value));
+                postInfo.append('factor', Number(rowToWorkOn.querySelector('input.factor').value));
+                postInfo.append('signaloffset', Number(rowToWorkOn.querySelector('input.signaloffset').value));
+                postInfo.append('issigned', rowToWorkOn.querySelector('input.issigned').checked);
+                postInfo.append('littleendian', rowToWorkOn.querySelector('input.littleendian').checked);
+                
+                postData('/analysis_save', postInfo).then(() => {
+                  window.location = "/analysis";
+                });
+              } else {
+                alert('You can\'t have duplicate names. Please choose a unique name');
+              }
             } else {
-              alert('You can\'t have duplicate names. Please choose a unique name');
+              alert('Please ensure that the name is only made of up upper and lower case letters, numbers, or - or _ characters');
             }
           }
 
