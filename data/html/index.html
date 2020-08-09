@@ -46,6 +46,10 @@
             alert('Please select a single file to update.  Either firmware.bin or spiffs.bin');
           }
           
+          const resetUploadFile = () => {
+            document.getElementById('update_file').value = "";
+          }
+          
           const uploadUpdate = (e, theForm) => {
               e.preventDefault();
               
@@ -64,10 +68,19 @@
                   updateURL = "/update";
                   startingMessage = "Uploading firmware...";
                 } else if (fileList[0].name == "spiffs.bin") {
+                  
+                  var doUpdate = confirm("Uploading a spiffs image will overwrite all analysis items as well as display scripts (Did you back up the ones you want to keep?).  Are you sure you want to do this?");
+                  if (!doUpdate) {
+                    resetUploadFile();
+                    return;
+                  }
+
                   updateURL = "/update_spiffs";
                   startingMessage = "Uploading spiffs...";
                 } else {
                   updateError();
+                  
+                  resetUploadFile();
                   return;
                 }
                 
@@ -103,10 +116,14 @@
                 	  //update completed.  Board is restarting...
                 	  statusEl.innerText = 'Update complete!  CANServer is restarting.';
                 	  addClass(statusEl, 'good');
+                	  
+                	  resetUploadFile();
                 	} else {
                 	  //update failed. 
                 	  statusEl.innerText = 'Update failed.';
                 	  addClass(statusEl, 'bad');
+                	  
+                	  resetUploadFile();
                 	}
                 	
                 	hide(progressEl);
