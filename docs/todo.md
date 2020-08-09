@@ -2,6 +2,9 @@
 
 ### ESP32 firmware
 * Dual bus support and detection (WIP)
+* Light SD card file browser
+* Backup of settings to SD if present
+* Incrementing log filename (or better yet date stamp)
 * Support pushbutton POST to trigger events (like log start/stop, or display toggle)
 * Nicer setup and config of LEDs (Blink for BSD, blinkers, display warnings) and Relay (toggle off delay after XYZ)
 * Use of bargraphs instead of LEDs (for same reasons as above)
@@ -17,7 +20,7 @@
 ### Desktop/PI tools
 * PC or phone tool to choose signals from any DBC file and send over their config
 * Integration with something like Teslogger to cloud process that data
-* Software to process and graph logs easily (or maybe slight update to CANbusAnalyzer)
+* Software to process and graph logs easily (or maybe slight update to CANbusAnalyzer) with separation of messages per bus
 
 ### Documentation/web
 * Document popular display configurations
