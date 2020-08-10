@@ -439,16 +439,9 @@ else\
                     CANServer::CanBus::AnalysisItemMap::iterator it = canbusInstance->dynamicAnalysisItems()->find(itemName);
                     if (it != canbusInstance->dynamicAnalysisItems()->end())
                     {
-                        if (it->second->builtIn)
-                        {
-                            //Deleting built in items is not allowed
-                        }
-                        else
-                        {
-                            delete it->second;
-                            canbusInstance->dynamicAnalysisItems()->erase(itemName.c_str());
-                            didDelete = true;
-                        }
+                        delete it->second;
+                        canbusInstance->dynamicAnalysisItems()->erase(itemName.c_str());
+                        didDelete = true;
                     }                        
                     
                     if (didDelete)
@@ -531,9 +524,6 @@ littleendian: true
                         CANServer::CanBus::AnalysisItemMap::iterator it = canbusInstance->dynamicAnalysisItems()->find(origItemName);
                         if (it != canbusInstance->dynamicAnalysisItems()->end())
                         {
-                            //Ensure that if we are updating a built in var that we keep it built in
-                            analysisItem->builtIn = it->second->builtIn;
-
                             delete it->second;
                             canbusInstance->dynamicAnalysisItems()->erase(origItemName);
 
@@ -567,7 +557,7 @@ littleendian: true
 
                 for (CANServer::CanBus::AnalysisItemMap::const_iterator it = CANServer::CanBus::instance()->dynamicAnalysisItems()->begin(); it != CANServer::CanBus::instance()->dynamicAnalysisItems()->end(); it++)
                 {
-                    doc[it->first.c_str()] = it->second->builtIn;
+                    doc[it->first.c_str()] = 1;
                 }
 
                 response->setLength();

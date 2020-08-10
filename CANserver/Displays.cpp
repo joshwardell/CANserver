@@ -12,8 +12,6 @@
 #define DISPLAY3_FILENAME "/displays/3.lua"
 #define DISPLAY3_FUNCTIONNAME "runDisplay3"
 
-#define OFF_DISPLAY_STRING "1m t0b1000r"
-
 CANServer::Displays* CANServer::Displays::_instance = NULL;
 
 CANServer::Displays::Displays(): _processingTime{20, 20, 20, 20}
@@ -226,13 +224,6 @@ const char* CANServer::Displays::renderDisplay(const uint8_t displayId)
     {
         return "";
     }
-
-    if (CANServer::CanBus::instance()->DisplayOnAnalysisItem()->lastValue == 0)
-    {
-        //Displays should be off.  Return the off string
-        return OFF_DISPLAY_STRING;
-    }
-
 
     std::string *stringToReturn = NULL;
     const char* functionName = NULL;

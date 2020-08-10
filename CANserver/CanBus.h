@@ -25,8 +25,6 @@ namespace CANServer
             bool isSigned;
             bool byteOrder;
 
-            bool builtIn;
-
             float lastValue;
         };
 
@@ -57,10 +55,6 @@ namespace CANServer
 
         void resolveLookups();
 
-        //Some pointeres to items that get used frequently (so we don't want to have to hunt for them every time)
-        AnalysisItem* DisplayOnAnalysisItem() { return _displayOnAnalysisItem; }
-        
-
     private:
         CanBus();
 
@@ -77,9 +71,6 @@ namespace CANServer
         bool _dynamicAnalysisPaused;
         AnalysisItemMap _analysisItems;
         AnalysisItemFrameLookupMap _quickFrameIdLookup_analysisItems;
-
-        //Some pointers to keep track of some special built in items that the system needs to run right.
-        AnalysisItem *_displayOnAnalysisItem;
     };
 }
 #endif

@@ -1,3 +1,7 @@
+if (CANServer_getAnalysisVar("DisplayOn") < 1) then
+    return "1m t0b1000r"
+end
+
 local rearTorque = CANServer_getAnalysisVar("RearTorque")
 local graphRearTorque = math.floor(math.min(math.max((24) * (rearTorque) / (400), -24), 24))
 

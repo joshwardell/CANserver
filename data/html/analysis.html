@@ -199,14 +199,9 @@
                 copyLinkEl.onclick = function () { copyItem(this) };
                 addClass(copyLinkEl, 'clickable');
 
-
                 let inputItems = itemRow.querySelectorAll('input');
                 inputItems.forEach(inputItem => {
-                  if (inputItem.dataset && inputItem.dataset.builtin == "true") {
-                    //Skip this one since we want to keep it disabled
-                  } else {
-                    inputItem.disabled = false;
-                  }
+                  inputItem.disabled = false;
                 });
                   
                 // call completed - so start next request
@@ -232,16 +227,6 @@
               
               inputBoxEl = itemRow.querySelector('input.name');
               inputBoxEl.value = itemId;
-              
-              isBuiltIn = itemdetails;
-
-              if (isBuiltIn) {
-                  inputBoxEl.dataset.builtin = true;
-                  inputBoxEl.setAttribute('alt', 'This is a built in item.  You can\'t change its name or delete it');
-                  inputBoxEl.setAttribute('title', 'This is a built in item.  You can\'t change its name or delete it');
-                  
-                  hide(itemRow.querySelector('a.delete'));
-              }
               
               let inputItems = itemRow.querySelectorAll('input');
               inputItems.forEach(inputItem => {

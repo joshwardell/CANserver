@@ -36,8 +36,6 @@ CANServer::CanBus::AnalysisItem::AnalysisItem()
     isSigned = false;
     byteOrder = false;
 
-    builtIn = false;
-
     lastValue = 0;
 }
 
@@ -196,8 +194,6 @@ void CANServer::CanBus::saveDynamicAnalysisFile(const char* itemName)
         doc["s"] =  analysisItem->isSigned;
         doc["bo"] =  analysisItem->byteOrder;
 
-        doc["bi"] =  analysisItem->builtIn;
-
         // Serialize JSON to file
         if (serializeJson(doc, file) == 0) 
         {
@@ -216,18 +212,11 @@ void CANServer::CanBus::deleteDynamicAnalysisFile(const char* itemName)
 
 void CANServer::CanBus::resolveLookups()
 {
-    _displayOnAnalysisItem = NULL;
     _quickFrameIdLookup_analysisItems.clear();
 
     //Sort out our quick look strcuture for processing
     for (AnalysisItemMap::iterator it = _analysisItems.begin(); it != _analysisItems.end(); it++)
     {
-        //Store some pointers for some quick lookups that we need (a bunch of our predefined things that we use for multiple things)
-        if (it->first == "DisplayOn")
-        {
-            _displayOnAnalysisItem = it->second;
-        } 
-        
         AnalysisItemFrameLookupMap::iterator lookupIt = _quickFrameIdLookup_analysisItems.find(it->second->frameId);
         if (lookupIt == _quickFrameIdLookup_analysisItems.end())
         {
@@ -269,8 +258,6 @@ void CANServer::CanBus::_loadDynamicAnalysisConfiguration()
             newAnalysisItem->signalOffset = doc["so"];
             newAnalysisItem->isSigned = doc["s"];
             newAnalysisItem->byteOrder = doc["bo"];
-
-            newAnalysisItem->builtIn = doc["bi"] || false;
             
             const char* name = fileName.c_str() + 3;
             _analysisItems.insert(AnalysisItemPair(name, newAnalysisItem));
