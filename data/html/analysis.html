@@ -10,19 +10,47 @@
         
         <style>
           body {font-family: sans-serif;}
-          
+          table {
+            width: 100%;
+          }
           tr td {
             text-align: center;
             padding: 2px 5px;
           }
-          input.frameid, input.startbit, input.bitlength, input.factor, input.signaloffset {
-            width:50px;
+          tr > td:last-of-type{
+            width: 100px;
           }
-                    
+          input.name, input.frameid, input.startbit, input.bitlength, input.factor, input.signaloffset {
+            width: 100%;
+          }
+                   
           tbody tr:nth-child(even) {
             background-color: lightgrey; 
           }
-          
+
+          @media screen and (max-width: 700px) {
+            table thead {
+              display: none;
+            }
+            tbody tr {
+              display: flex;
+              flex-direction: column;
+              margin-bottom: 24px;
+              padding: 8px
+            }
+            tr > td:last-of-type{
+              width: 100%;
+            }
+            tr td:before {
+              content: attr(data-title);
+            }
+            tr td {
+              text-align: left;
+              font-weight: bold;
+              margin-bottom: 8px;
+            }
+          }
+
           .blockInput {
             pointer-events:none;
           }
@@ -56,32 +84,32 @@
                 <td colspan="10" style="text-align:left !important">No items</td>
               </tr>
               <tr id="rowtemplate" class="hidden">
-                <td>
+                <td data-title="Name">
                   <input class="name" name="name" value="" maxlength="20">
                 </td>
-                <td>
+                <td data-title="Frame ID">
                   <input class="frameid" name="frameid" value="">
                 </td>
-                <td>
+                <td data-title="Start Bit">
                   <input class="startbit" name="startbit" value="" type="number">
                 </td>
-                <td>
+                <td data-title="Bit Length">
                   <input class="bitlength" name="bitlength" value="" type="number">
                 </td>
-                <td>
+                <td data-title="Factor">
                   <input class="factor" name="factor" value="">
                 </td>
-                <td>
+                <td data-title="Signal Offset">
                   <input class="signaloffset" name="signaloffset" value="">
                 </td>
-                <td>
+                <td data-title="Is Signed">
                   <input class="issigned" name="issigned" type="checkbox">
                 </td>
-                <td>
+                <td data-title="Little Endian">
                   <input class="littleendian" name="littleendian" type="checkbox">
                 </td>
-                <td class="value"> --- </td>
-                <td>
+                <td class="value" data-title="Value"> --- </td>
+                <td data-title="Action">
                   <a class="copy" alt="Copy" title="Copy"><img style="vertical-align: text-top;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIpSURBVDjLddM9aFRBFIbh98zM3WyybnYVf4KSQjBJJVZBixhRixSaShtBMKUoWomgnaCxsJdgIQSstE4nEhNREgyoZYhpkogkuMa4/3fuHIu7gpLd00wz52POMzMydu/Dy958dMwYioomIIgqDa+VnWrzebNUejY/NV6nQ8nlR4ufXt0fzm2WgxUgqBInAWdhemGbpcWNN9/XN27PPb1QbRdgjEhPqap2ZUv5+iOwvJnweT1mT5djZKjI6Ej/udz+wt1OJzAKYgWyDjJWyFghmzFsbtcY2gsTJwv09/Vc7RTgAEQgsqAKaoWsM8wu/z7a8B7vA8cHD3Fr+ktFgspO3a+vrdVfNEulJ/NT4zWngCBYY1oqSghKI465fvYwW+VAatPX07IZmF7YfrC0uDE8emPmilOFkHYiBKxAxhmSRPlZVVa2FGOU2Ad2ap4zg92MDBXJZczFmdflx05VEcAZMGIIClZASdesS2cU/dcm4sTBArNzXTcNakiCb3/HLRsn4Fo2qyXh3WqDXzUlcgYnam3Dl4Hif82dbOiyiBGstSjg4majEpl8rpCNUQUjgkia0M5GVAlBEBFUwflEv12b/Hig6SmA1iDtzhcsE6eP7LIxAchAtwNVxc1MnhprN/+lh0txErxrPZVdFdRDEEzHT6LWpTbtq+HLSDDiOm2o1uqlyOT37bIhHdKaXoL6pqhq24Dzd96/tUYGwPSBVv7atFglaFIu5KLuPxeX/xsp7aR6AAAAAElFTkSuQmCC"></a>
                   <a class="save" alt="Save" title="Save"><img style="vertical-align: text-top;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAH+SURBVBgZBcE9i11VGAbQtc/sO0OCkqhghEREAwpWAWUg8aMVf4KFaJEqQtAipTZWViKiCGOh2Ap2gmJhlSIWFsFOxUK0EsUM3pl79n4f12qHb3z3Fh7D83gC95GOJsDe0ixLk5Qq/+xv/Lw9Xd+78/HLX3Y8fXTr2nWapy4eCFKxG7Fby97SnDlYtMbxthyfzHO//nl85fNvfvnk8MbX5xa8IHx1518Vkrj54Q+qQms2vVmWZjdiu5ZR2rT01166/NCZg/2PFjwSVMU6yjoC1oq+x6Y3VbHdlXWExPd379nf7Nmejv2Os6OC2O4KLK0RNn3RNCdr2Z5GJSpU4o+/TkhaJ30mEk5HwNuvX7Hpi76wzvjvtIwqVUSkyjqmpHS0mki8+9mPWmuWxqYvGkbFGCUAOH/+QevYI9GFSqmaHr5wkUYTAlGhqiRRiaqiNes6SOkwJwnQEqBRRRJEgkRLJGVdm6R0GLMQENE0EkmkSkQSVVMqopyuIaUTs0J455VLAAAAAODW0U/GiKT0pTWziEj44PZ1AAAAcPPqkTmH3QiJrlEVDXDt0qsAAAAAapa5BqUnyaw0Am7//gUAAAB49tEXzTmtM5KkV/y2G/X4M5fPao03n/sUAAAAwIX7y5yBv9vhjW/fT/IkuSp5gJKElKRISYoUiSRIyD1tufs/IXxui20QsKIAAAAASUVORK5CYII="></a>
                   <a class="delete" alt="Delete" title="Delete"><img style="vertical-align: text-top;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAJdSURBVDjLpZP7S1NhGMf9W7YfogSJboSEUVCY8zJ31trcps6zTI9bLGJpjp1hmkGNxVz4Q6ildtXKXzJNbJRaRmrXoeWx8tJOTWptnrNryre5YCYuI3rh+8vL+/m8PA/PkwIg5X+y5mJWrxfOUBXm91QZM6UluUmthntHqplxUml2lciF6wrmdHriI0Wx3xw2hAediLwZRWRkCPzdDswaSvGqkGCfq8VEUsEyPF1O8Qu3O7A09RbRvjuIttsRbT6HHzebsDjcB4/JgFFlNv9MnkmsEszodIIY7Oaut2OJcSF68Qx8dgv8tmqEL1gQaaARtp5A+N4NzB0lMXxon/uxbI8gIYjB9HytGYuusfiPIQcN71kjgnW6VeFOkgh3XcHLvAwMSDPohOADdYQJdF1FtLMZPmslvhZJk2ahkgRvq4HHUoWHRDqTEDDl2mDkfheiDgt8pw340/EocuClCuFvboQzb0cwIZgki4KhzlaE6w0InipbVzBfqoK/qRH94i0rgokSFeO11iBkp8EdV8cfJo0yD75aE2ZNRvSJ0lZKcBXLaUYmQrCzDT6tDN5SyRqYlWeDLZAg0H4JQ+Jt6M3atNLE10VSwQsN4Z6r0CBwqzXesHmV+BeoyAUri8EyMfi2FowXS5dhd7doo2DVII0V5BAjigP89GEVAtda8b2ehodU4rNaAW+dGfzlFkyo89GTlcrHYCLpKD+V7yeeHNzLjkp24Uu1Ed6G8/F8qjqGRzlbl2H2dzjpMg1KdwsHxOlmJ7GTeZC/nesXbeZ6c9OYnuxUc3fmBuFft/Ff8xMd0s65SXIb/gAAAABJRU5ErkJggg=="></a>
