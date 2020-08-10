@@ -37,6 +37,7 @@ const setupNav = () => {
   footerObj.innerHTML = "<span>\
       Github: <a href=\"https://github.com/joshwardell/CANserver\">https://github.com/joshwardell/CANserver</a>\
     </span>\
+    <span>" + buildRev + "</span> \
     <span>\
       <label for=\"theme\">Visual theme:</label>\
       <select name=\"theme\" id=\"theme\">\

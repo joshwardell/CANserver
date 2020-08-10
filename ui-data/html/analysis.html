@@ -10,53 +10,6 @@
 
       <title>Analysis</title>
         
-        <style>
-          body {font-family: sans-serif;}
-          table {
-            width: 100%;
-          }
-          tr td {
-            text-align: center;
-            padding: 2px 5px;
-          }
-          tr > td:last-of-type{
-            width: 100px;
-          }
-          input.name, input.frameid, input.startbit, input.bitlength, input.factor, input.signaloffset {
-            width: 100%;
-          }
-                   
-          tbody tr:nth-child(even) {
-            background-color: lightgrey; 
-          }
-
-          @media screen and (max-width: 700px) {
-            table thead {
-              display: none;
-            }
-            tbody tr {
-              display: flex;
-              flex-direction: column;
-              margin-bottom: 24px;
-              padding: 8px
-            }
-            tr > td:last-of-type{
-              width: 100%;
-            }
-            tr td:before {
-              content: attr(data-title);
-            }
-            tr td {
-              text-align: left;
-              font-weight: bold;
-              margin-bottom: 8px;
-            }
-          }
-
-          .blockInput {
-            pointer-events:none;
-          }
-        </style>
     </head>
     <body>
       <main id="analysis">

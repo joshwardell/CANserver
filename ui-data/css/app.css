@@ -156,10 +156,6 @@ button:active {
   background: var(--color-3);
 }
 
-img {
-  margin-left: var(--medium);
-}
-
 
 main {
   padding: var(--large);
@@ -239,4 +235,51 @@ textarea {
 
 span#saveStatus {
   padding:5px;
+}
+
+
+
+
+#analysis table {
+  width: 100%;
+}
+
+#analysis tr td { 
+  text-align: center;
+  padding: 2px 5px;
+}
+
+#analysis tr > td:last-of-type {
+  width: 140px;
+}
+
+#analysis tbody tr:nth-child(even) { 
+  background-color: lightgrey;
+}
+
+#analysis input.name, input.frameid, input.startbit, input.bitlength, input.factor, input.signaloffset {
+  width: 100%;
+}
+
+@media screen and (max-width: 700px) {
+  #analysis table thead {
+   display: none;
+  }
+  #analysis tbody tr {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
+    padding: 8px
+  }
+  #analysis tr > td:last-of-type{
+    width: 100%;
+  }
+  #analysis tr td:before {
+    content: attr(data-title);
+  }
+  #analysis tr td {
+    text-align: left;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
 }
