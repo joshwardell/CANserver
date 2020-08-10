@@ -233,6 +233,19 @@ textarea {
   tab-size: 2;
 }
 
+#analysis tr td {
+  text-align: center;
+  padding: 2px 5px;
+}
+
+#analysis input.frameid, #analysis input.startbit, #analysis input.bitlength, #analysis input.factor, #analysis input.signaloffset {
+  width:50px;
+}
+
+#analysis tbody tr:nth-child(even) {
+  background-color: lightgrey; 
+}
+
 .memoryusage:after, .logsize:after {
   content: " B";
 }
