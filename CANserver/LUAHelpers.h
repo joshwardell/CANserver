@@ -2,7 +2,7 @@
 #define __LUAHELPERS_H__
 
 #include <Arduino.h>
-#include <SPIFFS.h>
+#include "SPIFFileSystem.h"
 
 #include "lua/lua.hpp"
 

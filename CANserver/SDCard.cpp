@@ -27,11 +27,8 @@ namespace CANServer
                     Serial.println("No SD card attached");
                     return;
                 }
-
-                uint64_t cardSize = SD.cardSize() / (1024 * 1024);
-                Serial.printf("SD Card Size: %lluMB\r\n", cardSize);
-                Serial.printf("Total space: %lluMB\r\n", SD.totalBytes() / (1024 * 1024));
-                Serial.printf("Used space: %lluMB\r\n", SD.usedBytes() / (1024 * 1024));
+                
+                Serial.printf("Total: %u MB, Used: %u MB\r\n", (size_t)(SD.totalBytes() / (1024 * 1024)), (size_t)(SD.usedBytes() / (1024 * 1024)));
 
                 _available = true;
             }

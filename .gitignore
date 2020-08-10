@@ -3,5 +3,4 @@
 **/.DS_Store
 .vscode/
 **/node_modules/
-do_build.sh
 build

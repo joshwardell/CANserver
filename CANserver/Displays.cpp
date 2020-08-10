@@ -212,7 +212,7 @@ void CANServer::Displays::saveScriptForDisplay(const uint8_t displayId, const ch
         }
     }
 
-    File newScriptFile = SPIFFS.open(fileName, "w");
+    File newScriptFile = CANServer::SPIFFileSystem::SPIFFS_data.open(fileName, "w");
     newScriptFile.print(scriptContents);
     newScriptFile.close();
 }

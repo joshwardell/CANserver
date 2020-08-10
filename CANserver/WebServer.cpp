@@ -3,7 +3,6 @@
 #include <Arduino.h>
 #include <esp_wifi.h>
 #include "esp_async_webserver/ESPAsyncWebServer.h"
-#include <SPIFFS.h>
 #include <Update.h>
 
 #include <iostream>
@@ -25,6 +24,7 @@
 #include "Network.h"
 #include "Logging.h"
 #include "Displays.h"
+#include "SPIFFileSystem.h"
 
 bool RebootAfterUpdate = false;
 bool PauseAllProcessing = false;
@@ -37,7 +37,7 @@ extern Average<uint32_t> _memoryUsage;
 #define FETCH_HELPER(keyname) vehiclestatus[#keyname] = vehicleStateInstance->keyname;
 AsyncWebServer server(80);
 
-String _buildDate(const String& var)
+String _buildInfo(const String& var)
 {
     if(var == "BUILD_DATE")
         return F(__DATE__ " " __TIME__);
@@ -48,7 +48,7 @@ String _buildDate(const String& var)
     if (var == "SPIFFS_REV")
     {
         String revString = "unknown";
-        File spiffsrevFile = SPIFFS.open("/rev", "r");
+        File spiffsrevFile = CANServer::SPIFFileSystem::SPIFFS_app.open("/rev", "r");
         if (spiffsrevFile)
         {
             revString = spiffsrevFile.readString();
@@ -66,7 +66,7 @@ namespace CANServer
     namespace WebServer
     {
 
-        void _handleUpdateChunk(const int updateType, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+        void _handleUpdateChunk(const int updateType, const unsigned long paritionSize, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 
         CANServer::CanBus::AnalysisItemMap::const_iterator analysisLoadIterator;
         uint8_t analysisLoadOutputState = 0;
@@ -80,11 +80,11 @@ namespace CANServer
 
         #ifdef INCLUDE_SPIFFS_EDITOR
             //Attach the SPIFFS editor helper so we can edit files on the fly
-            server.addHandler(new SPIFFSEditor(SPIFFS, "admin","password"));
+            server.addHandler(new SPIFFSEditor(CANServer::SPIFFileSystem::SPIFFS_app, "admin","password"));
         #endif
 
             server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-                request->send(SPIFFS, "/html/index.html", String(), false, _buildDate);
+                request->send(CANServer::SPIFFileSystem::SPIFFS_app, "/html/index.html", String(), false, _buildInfo);
             });
 
             server.on("/memory", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -108,7 +108,7 @@ namespace CANServer
 
             //Display configuration related url handling
             server.on("/displays", HTTP_GET, [](AsyncWebServerRequest *request){
-                request->send(SPIFFS, "/html/displays.html");
+                request->send(CANServer::SPIFFileSystem::SPIFFS_app, "/html/displays.html", String(), false, _buildInfo);
             });
 
             server.on("/display_load", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -122,7 +122,7 @@ namespace CANServer
                         return;
                     }
 
-                    request->send(SPIFFS, CANServer::Displays::instance()->filenameForDisplay(displayId));
+                    request->send(CANServer::SPIFFileSystem::SPIFFS_data, CANServer::Displays::instance()->filenameForDisplay(displayId));
                 }
                 else
                 {
@@ -190,7 +190,7 @@ namespace CANServer
 
             //Network configuration related url handling
             server.on("/network", HTTP_GET, [](AsyncWebServerRequest *request){
-                request->send(SPIFFS, "/html/network.html");
+                request->send(CANServer::SPIFFileSystem::SPIFFS_app, "/html/network.html", String(), false, _buildInfo);
             });
 
             server.on("/network_save", HTTP_POST, [](AsyncWebServerRequest * request) {
@@ -288,7 +288,7 @@ namespace CANServer
 
             //Accessability to log files
             server.on("/logs", HTTP_GET, [](AsyncWebServerRequest *request) {
-                request->send(SPIFFS, "/html/logs.html");
+                request->send(CANServer::SPIFFileSystem::SPIFFS_app, "/html/logs.html", String(), false, _buildInfo);
             }); 
 #define LOGSettingsUpdateHelper(postvarname, logtype) {\
 JsonObject detailsNode = doc.createNestedObject(postvarname);\
@@ -423,7 +423,7 @@ else\
 
             //Dynamic Analysis configuration
             server.on("/analysis", HTTP_GET, [](AsyncWebServerRequest *request){
-                request->send(SPIFFS, "/html/analysis.html");
+                request->send(CANServer::SPIFFileSystem::SPIFFS_app, "/html/analysis.html", String(), false, _buildInfo);
             });
 
             server.on("/analysis_delete", HTTP_POST, [](AsyncWebServerRequest * request) {
@@ -647,13 +647,13 @@ littleendian: true
 
             //Static content related URL handling
             server.on("/js/app.js", HTTP_GET,  [](AsyncWebServerRequest *request){
-                AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/js/app.js", "application/javascript");
+                AsyncWebServerResponse *response = request->beginResponse(CANServer::SPIFFileSystem::SPIFFS_app, "/js/app.js", "application/javascript");
                 response->addHeader("Cache-Control", "max-age=600");
                 request->send(response);
             });
 
             server.on("/css/app.css", HTTP_GET,  [](AsyncWebServerRequest *request){
-                AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/css/app.css", "text/css");
+                AsyncWebServerResponse *response = request->beginResponse(CANServer::SPIFFileSystem::SPIFFS_app, "/css/app.css", "text/css");
                 response->addHeader("Cache-Control", "max-age=600");
                 request->send(response);
             });
@@ -662,8 +662,8 @@ littleendian: true
 
             //handle OTA updats
             //A command like this 
-            //curl --progress-bar --verbose -F "file=@firmware.bin" http://172.20.21.204/update | cat
-            //curl --progress-bar --verbose -F "file=@spiffs.bin" http://172.20.21.204/update_spiffs | cat
+            //curl --progress-bar --verbose -F "file=@web-firmware.bin" http://172.20.21.204/update | cat
+            //curl --progress-bar --verbose -F "file=@web-ui.bin" http://172.20.21.204/update_ui | cat
             //will send the update to the server
 
             server.on("/update", HTTP_POST, [](AsyncWebServerRequest *request){
@@ -677,10 +677,10 @@ littleendian: true
                 request->send(response);
 
             },[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
-                _handleUpdateChunk(U_FLASH, request, filename, index, data, len, final);
+                _handleUpdateChunk(U_FLASH, 1572864, request, filename, index, data, len, final);
             });
 
-            server.on("/update_spiffs", HTTP_POST, [](AsyncWebServerRequest *request){
+            server.on("/update_ui", HTTP_POST, [](AsyncWebServerRequest *request){
                 // the request handler is triggered after the upload has finished... 
                 // create the response, add header, and send response
                 
@@ -692,7 +692,7 @@ littleendian: true
                 request->send(response);
 
             }, [](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
-                _handleUpdateChunk(U_SPIFFS, request, filename, index, data, len, final);
+                _handleUpdateChunk(U_SPIFFS, 921600, request, filename, index, data, len, final);
             });
 
             // Start server
@@ -701,7 +701,7 @@ littleendian: true
             Serial.println("Done");
         }
 
-        void _handleUpdateChunk(const int updateType, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
+        void _handleUpdateChunk(const int updateType, const unsigned long partitionSize, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
         {
             //Upload handler chunks in data            
             if(index == 0) 
@@ -713,7 +713,7 @@ littleendian: true
                 PauseAllProcessing = true;
                 
                 // calculate sketch space required for the update
-                if(!Update.begin(UPDATE_SIZE_UNKNOWN, updateType))
+                if(!Update.begin(partitionSize, updateType))
                 {
                     //start with max available size
                     Update.printError(Serial);

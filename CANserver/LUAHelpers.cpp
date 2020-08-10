@@ -1,6 +1,7 @@
 #include "LUAHelpers.h"
 
 #include "CanBus.h"
+#include "SPIFFileSystem.h"
 
 
 //Container for user defined variables
@@ -26,10 +27,11 @@ CANServer::LUAHelpers::SPIFFSLoader::SPIFFSLoader()
 const CANServer::LUAHelpers::SPIFFSLoader::ScriptLoadResult CANServer::LUAHelpers::SPIFFSLoader::load(const char* filename, lua_State *L, const char* functionName, std::string* errorString)
 {
     ScriptLoadResult returnCode = CANServer::LUAHelpers::SPIFFSLoader::ScriptLoadResult_OK;
-    if (SPIFFS.exists(filename))
+    
+    if (CANServer::SPIFFileSystem::SPIFFS_data.exists(filename))
     {
         //Serial.println("File exists");
-        _fileToLoad = SPIFFS.open(filename);
+        _fileToLoad = CANServer::SPIFFileSystem::SPIFFS_data.open(filename);
         if (_fileToLoad)
         {
             //Serial.println("File opened");

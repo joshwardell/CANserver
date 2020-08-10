@@ -99,7 +99,7 @@ void loop()
 
         if (memorySampleCounter++ > 10)
         {
-            log_v("RAM Usage: mean: %0.2f, max: %d, min: %d, stdev: %0.2f", _memoryUsage.mean(), _memoryUsage.maximum(), _memoryUsage.minimum(), _memoryUsage.stddev());
+            //log_v("RAM Usage: mean: %0.2f, max: %d, min: %d, stdev: %0.2f", _memoryUsage.mean(), _memoryUsage.maximum(), _memoryUsage.minimum(), _memoryUsage.stddev());
             //log_v("Lopp Time: mean: %0.2f, max: %d, min: %d, stdev: %0.2f", _loopTime.mean(), _loopTime.maximum(), _loopTime.minimum(), _loopTime.stddev());
             memorySampleCounter = 0;
         }

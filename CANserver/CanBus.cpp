@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 #include "esp32_can/esp32_can.h"
-#include <SPIFFS.h>
+#include "SPIFFileSystem.h"
 #include <ArduinoJson.h>
 
 #include "generalCANSignalAnalysis.h" //https://github.com/iChris93/ArduinoLibraryForCANSignalAnalysis
@@ -177,7 +177,7 @@ void CANServer::CanBus::saveDynamicAnalysisFile(const char* itemName)
         AnalysisItem *analysisItem = it->second;
         String newConfigFile = String(F("/a/")) + String(it->first.c_str());
 
-        File file = SPIFFS.open(newConfigFile, FILE_WRITE);
+        File file = CANServer::SPIFFileSystem::SPIFFS_data.open(newConfigFile, FILE_WRITE);
         if (!file) {
             Serial.println(F("Failed to create file"));
             return;
@@ -207,7 +207,7 @@ void CANServer::CanBus::saveDynamicAnalysisFile(const char* itemName)
 void CANServer::CanBus::deleteDynamicAnalysisFile(const char* itemName)
 {
     String fileName = String(F("/a/")) + itemName;
-    SPIFFS.remove(fileName);
+    CANServer::SPIFFileSystem::SPIFFS_data.remove(fileName);
 }
 
 void CANServer::CanBus::resolveLookups()
@@ -231,7 +231,7 @@ void CANServer::CanBus::resolveLookups()
 void CANServer::CanBus::_loadDynamicAnalysisConfiguration()
 {
     //Try and find all the diffrent analysis files stored on disk
-    File root = SPIFFS.open("/");
+    File root = CANServer::SPIFFileSystem::SPIFFS_data.open("/");
     File file = root.openNextFile();
     while(file) 
     {
@@ -265,6 +265,8 @@ void CANServer::CanBus::_loadDynamicAnalysisConfiguration()
 
         file = root.openNextFile();
     }
+
+    root.close();
 
     this->resolveLookups();
 }

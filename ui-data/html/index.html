@@ -1,12 +1,14 @@
 <html>
     <head>
       <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta http-equiv="content-language" content="en" />
       <link rel="icon" href="data:,">
       <link rel="stylesheet" type="text/css" href="/css/app.css">
+
+      <script src="/js/app.js"></script>
+      <script>var buildRev = "%BUILD_REV%";</script>
         
       <title>CANServer</title>
-      <script src="/js/app.js"></script>
-      
     </head>
     <body>
       <main id="main">
@@ -14,7 +16,7 @@
         <h4>Status</h4>
         <label for="build_date">Build Date: </label><span id="build_date">%BUILD_DATE%</span><br>
         <label for="build_rev">Build Rev: </label><span id="build_rev">%BUILD_REV%</span><br>
-        <label for="spiffs_rev">SPIFFS Rev: </label><span id="spiffs_rev">%SPIFFS_REV%</span>
+        <label for="spiffs_rev">UI Rev: </label><span id="spiffs_rev">%SPIFFS_REV%</span>
         
         <h5>Memory Usage</h5>
         <div id="memoryusage">
@@ -64,19 +66,12 @@
                 var updateURL = "/update";
                 startingMessage = "Uploading...";
                 //Check the filename and make sure it is one we support
-                if (fileList[0].name == "firmware.bin") {
+                if (fileList[0].name == "web-firmware.bin") {
                   updateURL = "/update";
                   startingMessage = "Uploading firmware...";
-                } else if (fileList[0].name == "spiffs.bin") {
-                  
-                  var doUpdate = confirm("Uploading a spiffs image will overwrite all analysis items as well as display scripts (Did you back up the ones you want to keep?).  Are you sure you want to do this?");
-                  if (!doUpdate) {
-                    resetUploadFile();
-                    return;
-                  }
-
-                  updateURL = "/update_spiffs";
-                  startingMessage = "Uploading spiffs...";
+                } else if (fileList[0].name == "web-ui.bin") {
+                  updateURL = "/update_ui";
+                  startingMessage = "Uploading ui...";
                 } else {
                   updateError();
                   
