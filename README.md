@@ -5,7 +5,7 @@ A powerful little CANbus-to-WiFi board
 
 http://www.jwardell.com/canserver
 
-**[Please see all documentation in docs subdirectory](https://github.com/joshwardell/CANserver/tree/master/docs)**
+**[Please see all documentation in the Wiki](https://github.com/joshwardell/CANserver/wiki)**
 
 ![CANserver](docs/img/server3d.jpg)
 
