@@ -1,0 +1,138 @@
+<html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta http-equiv="content-language" content="en" />
+      <link rel="icon" href="data:,">
+      <link rel="stylesheet" type="text/css" href="/css/app.css">
+
+      <script src="/js/app.js"></script>
+      <script>var buildRev = "%BUILD_REV%";</script>
+        
+      <title>Network Config</title>
+    </head>
+    <body>
+      <main id="network">
+          <div id="networkparams">
+            <div id="loading">Loading...</div>
+            <h3>External Wireless Connection</h3>
+            <label for="statusspan">Status:</label><span style="padding:3px;" id="statusspan">Loading...</span><br>
+            <form action="/network_save" method="POST" id="settingsform" class="hidden">
+              <label>SSID: </label><input name="ssid" id="ssid"/> *To disable external wifi connectivity just make sure this box is empty<br>
+              <label>Password: </label><input name="password" id="password"/> *Saved password isn't displayed.  If you leave it empty and hit save it will be removed<br>
+              <br>
+              <button type="submit">Save</button>
+            </form>
+            
+            <h3>Panda Connection</h3>
+            <div id="pandaconnection">
+              Loading...
+            </div>
+            
+            <h3>Connected Clients</h3>
+            <div id="stationlist">
+              Loading...
+            </div>
+          </div>
+        </main>
+
+        <script>
+          const networkEl = document.getElementById('network');
+
+          if (networkEl) {
+            // load network data
+            getJSON('/network_update').then(data => {
+              if ('networksettings' in data) {
+                  Object.keys(data.networksettings).forEach(id => {
+                      const input = networkEl.querySelector('input#' + id);
+                      input && (input.value = data.networksettings[id]);
+                  });
+
+                  hide(networkEl.querySelector('div#loading'));
+                  show(networkEl.querySelector('form#settingsform'));
+              }
+            });
+          
+            let fetchingClients = false;
+
+            const loadClients = () => {
+              const stationListEl = network.querySelector('#stationlist');
+              stationListEl.innerText = '';
+
+              // avoid building a big backlog of requests if server is slow
+              if (!fetchingClients) {
+                fetchingClients = true;
+
+                getJSON('/network_stationlist').then(data => {
+                  if ('stations' in data) {
+                    const stations = data.stations;
+
+                    if (stations.length === 0) {
+                      stationListEl.innerText = 'No connected clients';
+                    } else {
+                      const listEl = el('ul', {
+                        children: Object.keys(stations).map(stationId => {
+                          const station = stations[stationId];
+                          return station && el('li', { inner: station.mac + ' - ' + station.ip });
+                        }).filter(Boolean)
+                      })
+
+                      stationListEl.appendChild(listEl);
+                    }
+                  }
+                  fetchingClients = false;
+                });
+              }
+            }
+            
+            let fetchingStatus = false;
+
+            const loadStatus = () => {
+              // avoid building a big backlog of requests if server is slow
+              if (!fetchingStatus) {
+                fetchingStatus = true;
+
+                getJSON('/network_status').then(data => {
+                  
+                  var statusEl = document.getElementById("statusspan");
+                  removeClass(statusEl, 'good');
+                  removeClass(statusEl, 'bad');
+                  
+                  if ("externalStatus" in data) {
+                    if (data.externalStatus == true) {
+                      statusEl.innerText = "Connected";
+                      if ("externalIP" in data) {
+                        statusEl.innerText += " - " + data.externalIP;
+                      }
+                      addClass(statusEl, 'good');
+                    } else {
+                      statusEl.innerText = "Not Connected";
+                    }
+                  }
+                  
+                  var pandaEl = document.getElementById("pandaconnection");
+                  if ("panda" in data) {
+                    if (data.panda.port != 0) {
+                      pandaEl.innerText = data.panda.ip; 
+                    } else {
+                      pandaEl.innerText = "No connection";
+                    }
+                  }
+                  
+                  fetchingStatus = false;
+                });
+              }
+            }
+
+            // load clients data
+            loadClients();
+            loadStatus();
+
+            // refresh clients data
+            setInterval(loadClients, 5000);
+            
+            //refresh status data
+            setInterval(loadStatus, 5000);
+          }
+        </script>
+    </body>
+</html>

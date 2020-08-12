@@ -1,2 +1,7 @@
 
 .pio/
+**/.DS_Store
+.vscode/
+**/node_modules/
+do_release.sh
+build
