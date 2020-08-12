@@ -56,11 +56,11 @@ void PandaUDP::begin(uint16_t localPort_) {
 			// a request to start/continue streaming
 
             // Set the remote port and IP
-            remoteIP = packet.remoteIP();
-            remotePort = packet.remotePort();
+            _remoteIP = packet.remoteIP();
+            _remotePort = packet.remotePort();
 
             Serial.print("Panda packet from: ");
-            Serial.println(remoteIP);
+            Serial.println(_remoteIP);
             
 			// Set the timeout to 5 seconds in the future.
 			timeout = millis() + 10000;
@@ -72,12 +72,12 @@ PandaPacket p;
 volatile bool sendActive = false;
 void PandaUDP::handleMessage(CAN_FRAME message, const uint8_t busId) {
 	// If remote port == 0, then we do not have an active client connected.
-  if (remotePort > 0) 
+  if (_remotePort > 0) 
   {
     if (millis() > timeout) 
     {
       Serial.println("Closing Panda stream due to timeout");
-      remotePort = 0;
+      _remotePort = 0;
     } 
     else 
     {
@@ -90,7 +90,7 @@ void PandaUDP::handleMessage(CAN_FRAME message, const uint8_t busId) {
         memcpy(p.data, message.data.byte, message.length);        
 
         //Send to the client
-        udp.writeTo((uint8_t*)&p, sizeof(PandaPacket), remoteIP, localPort);
+        udp.writeTo((uint8_t*)&p, sizeof(PandaPacket), _remoteIP, localPort);
         sendActive = false;
       }
     }

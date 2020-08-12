@@ -1,15 +1,24 @@
 #!/bin/bash
 
-~/.platformio/penv/bin/platformio run && \
-~/.platformio/packages/tool-mkspiffs/mkspiffs_espressif32_arduino -c ui-data -p 256 -b 4096 -s 921600 .pio/build/node32s/spiffs.bin && \
-~/.platformio/packages/tool-mkspiffs/mkspiffs_espressif32_arduino -c user-data -p 256 -b 4096 -s 49152 .pio/build/node32s/user_spiffs.bin
-
 mkdir -p build/
-rm build/*
+rm build/* &> /dev/null
 
-cp .pio/build/node32s/firmware.bin ./build/web-firmware.bin
-cp .pio/build/node32s/spiffs.bin ./build/web-ui.bin
-cp .pio/build/node32s/user_spiffs.bin ./build/user-data.bin
+RUN_ENVIRONMENT=""
+BUILD_DIRECTORY="node32s"
+if [ $# -gt 0 ]
+  then
+    RUN_ENVIRONMENT="-e ${1}"
+    BUILD_DIRECTORY="${1}"
+fi
+
+~/.platformio/penv/bin/platformio run $RUN_ENVIRONMENT && \
+~/.platformio/packages/tool-mkspiffs/mkspiffs_espressif32_arduino -c ui-data -p 256 -b 4096 -s 921600 .pio/build/$BUILD_DIRECTORY/spiffs.bin && \
+~/.platformio/packages/tool-mkspiffs/mkspiffs_espressif32_arduino -c user-data -p 256 -b 4096 -s 49152 .pio/build/$BUILD_DIRECTORY/user_spiffs.bin
+
+
+cp .pio/build/$BUILD_DIRECTORY/firmware.bin ./build/web-firmware.bin
+cp .pio/build/$BUILD_DIRECTORY/spiffs.bin ./build/web-ui.bin
+cp .pio/build/$BUILD_DIRECTORY/user_spiffs.bin ./build/user-data.bin
 
 #merge all the bits togeather so we can create a single firmware image
 touch fillbyte.bin
@@ -20,7 +29,7 @@ python3 tools/padfiletolength.py fillbyte.bin 255 4096 > build/updateflash.bin
 python3 tools/padfiletolength.py ~/.platformio/packages/framework-arduinoespressif32/tools/sdk/bin/bootloader_dio_40m.bin 255 28672 >> build/updateflash.bin
 
 #Partitions go in next at 0x8000 - len 0x1000
-python3 tools/padfiletolength.py .pio/build/node32s/partitions.bin 255 4096 >> build/updateflash.bin
+python3 tools/padfiletolength.py .pio/build/$BUILD_DIRECTORY/partitions.bin 255 4096 >> build/updateflash.bin
 
 #some empty space that we aren't using because of the rejig of the layout for easier flashing
 #We moved the NVS stuff to the end of flash (it used to take up this space)

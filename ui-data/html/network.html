@@ -23,6 +23,11 @@
               <button type="submit">Save</button>
             </form>
             
+            <h3>Panda Connection</h3>
+            <div id="pandaconnection">
+              Loading...
+            </div>
+            
             <h3>Connected Clients</h3>
             <div id="stationlist">
               Loading...
@@ -101,6 +106,15 @@
                       addClass(statusEl, 'good');
                     } else {
                       statusEl.innerText = "Not Connected";
+                    }
+                  }
+                  
+                  var pandaEl = document.getElementById("pandaconnection");
+                  if ("panda" in data) {
+                    if (data.panda.port != 0) {
+                      pandaEl.innerText = data.panda.ip; 
+                    } else {
+                      pandaEl.innerText = "No connection";
                     }
                   }
                   

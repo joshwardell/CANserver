@@ -331,7 +331,7 @@ const char* CANServer::Displays::renderDisplay(const uint8_t displayId)
 
     if (*luaError)
     {
-        *stringToReturn = "1m2s DISPLAY  ERROR  t500r";
+        *stringToReturn = "1m2s  SCRIPT  ERROR  t0b500r";
     }
 
     return stringToReturn->c_str();

@@ -25,10 +25,14 @@
 #include "Logging.h"
 #include "Displays.h"
 #include "SPIFFileSystem.h"
+#include "PandaUDP.h"
 
 bool RebootAfterUpdate = false;
 bool PauseAllProcessing = false;
+
+//Make sure the compiler knows this exists in our memory space
 extern Average<uint32_t> _memoryUsage;
+extern PandaUDP panda;
 
 #define ASSIGN_HELPER(keyname) if (keyParam->value() == #keyname)\
                     {\
@@ -264,8 +268,8 @@ namespace CANServer
     
                     stationInfo["mac"] = macStringStream.str();
                     stationInfo["ip"] = ip4addr_ntoa(&(station.ip));
-                }            
-                
+                }      
+
                 response->setLength();
                 request->send(response);                
             });
@@ -278,6 +282,10 @@ namespace CANServer
                 if (CANServer::Network::getExternalStatus()) {
                     doc["externalIP"] = WiFi.localIP().toString();
                 }
+
+                JsonObject pandaDetails = doc.createNestedObject("panda");
+                pandaDetails["ip"] = panda.remoteIP()->toString();
+                pandaDetails["port"] = panda.remotePort();
 
                 response->setLength();
                 request->send(response);        
