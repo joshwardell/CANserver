@@ -17,6 +17,8 @@ namespace CANServer
             LogType_Unknown = 0,
             LogType_Raw = 1,
             LogType_Interval = 2,
+            LogType_Drive = 3,
+            LogType_Charge = 4,
             LogType_Serial = 50,
         } LogType;
 
