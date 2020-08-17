@@ -336,7 +336,7 @@ void CANServer::Logging::handleMessage(CAN_FRAME *frame, const uint8_t busId)
                         for (CANServer::CanBus::AnalysisItemMap::const_iterator iter = canbusInstance->dynamicAnalysisItems()->begin(); iter != canbusInstance->dynamicAnalysisItems()->end(); ++iter)
                         {
                             if(iter->second->driveLog == 1){
-                                tempRow = tempRow + "," + iter->second->lastValue;
+                                tempRow = tempRow + "," + String(iter->second->lastValue,6);
                             }
                         }
                         it->second.fileHandle.println(tempRow);
@@ -360,7 +360,7 @@ void CANServer::Logging::handleMessage(CAN_FRAME *frame, const uint8_t busId)
                         for (CANServer::CanBus::AnalysisItemMap::const_iterator iter = canbusInstance->dynamicAnalysisItems()->begin(); iter != canbusInstance->dynamicAnalysisItems()->end(); ++iter)
                         {
                             if(iter->second->chargeLog == 1){
-                                tempRow = tempRow + "," + iter->second->lastValue;
+                                tempRow = tempRow + "," + String(iter->second->lastValue,6);
                             }
                         }
                         it->second.fileHandle.println(tempRow);
