@@ -26,6 +26,8 @@
                 <th style="width: 72px;">Is Signed</th>
                 <th style="width: 96px;">Little Endian</th>
                 <th style="width: 68px;">Value</th>
+                <th style="width: 96px;">Drive Log</th>
+                <th style="width: 96px;">Charge Log</th>
                 <th style="width: 50px;">Action</th>
               </tr>
             </thead>
@@ -64,6 +66,12 @@
                   <input class="littleendian" name="littleendian" type="checkbox">
                 </td>
                 <td class="value" data-title="Value"> --- </td>
+                <td data-title="Drive Log">
+                  <input class="drivelog" name="drivelog" type="checkbox">
+                </td>
+                <td data-title="Charge Log">
+                  <input class="chargelog" name="chargelog" type="checkbox">
+                </td>
                 <td data-title="Action">
                   <a class="copy" alt="Copy" title="Copy"><img style="vertical-align: text-top;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIpSURBVDjLddM9aFRBFIbh98zM3WyybnYVf4KSQjBJJVZBixhRixSaShtBMKUoWomgnaCxsJdgIQSstE4nEhNREgyoZYhpkogkuMa4/3fuHIu7gpLd00wz52POMzMydu/Dy958dMwYioomIIgqDa+VnWrzebNUejY/NV6nQ8nlR4ufXt0fzm2WgxUgqBInAWdhemGbpcWNN9/XN27PPb1QbRdgjEhPqap2ZUv5+iOwvJnweT1mT5djZKjI6Ej/udz+wt1OJzAKYgWyDjJWyFghmzFsbtcY2gsTJwv09/Vc7RTgAEQgsqAKaoWsM8wu/z7a8B7vA8cHD3Fr+ktFgspO3a+vrdVfNEulJ/NT4zWngCBYY1oqSghKI465fvYwW+VAatPX07IZmF7YfrC0uDE8emPmilOFkHYiBKxAxhmSRPlZVVa2FGOU2Ad2ap4zg92MDBXJZczFmdflx05VEcAZMGIIClZASdesS2cU/dcm4sTBArNzXTcNakiCb3/HLRsn4Fo2qyXh3WqDXzUlcgYnam3Dl4Hif82dbOiyiBGstSjg4majEpl8rpCNUQUjgkia0M5GVAlBEBFUwflEv12b/Hig6SmA1iDtzhcsE6eP7LIxAchAtwNVxc1MnhprN/+lh0txErxrPZVdFdRDEEzHT6LWpTbtq+HLSDDiOm2o1uqlyOT37bIhHdKaXoL6pqhq24Dzd96/tUYGwPSBVv7atFglaFIu5KLuPxeX/xsp7aR6AAAAAElFTkSuQmCC"></a>
                   <a class="save" alt="Save" title="Save"><img style="vertical-align: text-top;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAH+SURBVBgZBcE9i11VGAbQtc/sO0OCkqhghEREAwpWAWUg8aMVf4KFaJEqQtAipTZWViKiCGOh2Ap2gmJhlSIWFsFOxUK0EsUM3pl79n4f12qHb3z3Fh7D83gC95GOJsDe0ixLk5Qq/+xv/Lw9Xd+78/HLX3Y8fXTr2nWapy4eCFKxG7Fby97SnDlYtMbxthyfzHO//nl85fNvfvnk8MbX5xa8IHx1518Vkrj54Q+qQms2vVmWZjdiu5ZR2rT01166/NCZg/2PFjwSVMU6yjoC1oq+x6Y3VbHdlXWExPd379nf7Nmejv2Os6OC2O4KLK0RNn3RNCdr2Z5GJSpU4o+/TkhaJ30mEk5HwNuvX7Hpi76wzvjvtIwqVUSkyjqmpHS0mki8+9mPWmuWxqYvGkbFGCUAOH/+QevYI9GFSqmaHr5wkUYTAlGhqiRRiaqiNes6SOkwJwnQEqBRRRJEgkRLJGVdm6R0GLMQENE0EkmkSkQSVVMqopyuIaUTs0J455VLAAAAAODW0U/GiKT0pTWziEj44PZ1AAAAcPPqkTmH3QiJrlEVDXDt0qsAAAAAapa5BqUnyaw0Am7//gUAAAB49tEXzTmtM5KkV/y2G/X4M5fPao03n/sUAAAAwIX7y5yBv9vhjW/fT/IkuSp5gJKElKRISYoUiSRIyD1tufs/IXxui20QsKIAAAAASUVORK5CYII="></a>
@@ -100,7 +108,8 @@
                   "so" in parsedJson &&
                   "s" in parsedJson &&
                   "bo" in parsedJson &&
-                  "v" in parsedJson) {
+                  "v" in parsedJson &&
+                  "dl" in parsedJson) {
                 //This looks like what we want.  Lets deal with it.
                 var itemName = parsedJson.n;
                 
@@ -128,6 +137,8 @@
                 foundItemRow.querySelector('input.signaloffset').value = parsedJson.so;
                 foundItemRow.querySelector('input.issigned').checked = parsedJson.s == true;
                 foundItemRow.querySelector('input.littleendian').checked = parsedJson.bo == true;
+                foundItemRow.querySelector('input.drivelog').checked = parsedJson.dl == true;
+                foundItemRow.querySelector('input.chargelog').checked = parsedJson.cl == true;
                 
                 event.preventDefault();      
                 
@@ -169,6 +180,8 @@
                 itemRow.querySelector('input.signaloffset').value = data.signalOffset;
                 itemRow.querySelector('input.issigned').checked = data.isSigned == true;
                 itemRow.querySelector('input.littleendian').checked = data.byteOrder == true;
+                itemRow.querySelector('input.drivelog').checked = data.driveLog == true;
+                itemRow.querySelector('input.chargelog').checked = data.chargeLog == true;
                 
                 let saveLinkEl = itemRow.querySelector('a.save');
                 saveLinkEl.onclick = function () { saveItem(this) };
@@ -283,6 +296,8 @@
             jsonToCopy['s'] = rowToWorkOn.querySelector('input.issigned').checked;
             jsonToCopy['bo'] = rowToWorkOn.querySelector('input.littleendian').checked;
             jsonToCopy['v'] = 1;
+            jsonToCopy['dl'] = rowToWorkOn.querySelector('input.drivelog').checked;
+            jsonToCopy['cl'] = rowToWorkOn.querySelector('input.chargelog').checked;
             
             var id = "mycustom-clipboard-textarea-hidden-id";
             var existsTextarea = document.getElementById(id);
@@ -357,6 +372,8 @@
                 postInfo.append('signaloffset', Number(rowToWorkOn.querySelector('input.signaloffset').value));
                 postInfo.append('issigned', rowToWorkOn.querySelector('input.issigned').checked);
                 postInfo.append('littleendian', rowToWorkOn.querySelector('input.littleendian').checked);
+                postInfo.append('drivelog', rowToWorkOn.querySelector('input.drivelog').checked);
+                postInfo.append('chargelog', rowToWorkOn.querySelector('input.chargelog').checked);
                 
                 postData('/analysis_save', postInfo).then(() => {
                   window.location = "/analysis";
