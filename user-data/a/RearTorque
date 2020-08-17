@@ -6,5 +6,7 @@
     "so": 0,
     "s": true,
     "bo": true,
-    "v": 1
+    "v": 1,
+    "dl": true,
+    "cl": true
 }
