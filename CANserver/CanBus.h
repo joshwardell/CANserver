@@ -24,6 +24,8 @@ namespace CANServer
             int signalOffset;
             bool isSigned;
             bool byteOrder;
+            bool driveLog;
+            bool chargeLog;
 
             float lastValue;
         };
