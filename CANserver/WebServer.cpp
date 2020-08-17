@@ -312,6 +312,8 @@ detailsNode["filesize"] = logginginstance->fileSize(logtype);\
                 
                 LOGSettingsUpdateHelper("rawlog", CANServer::Logging::LogType_Raw);
                 LOGSettingsUpdateHelper("intervallog", CANServer::Logging::LogType_Interval);
+                LOGSettingsUpdateHelper("drivelog", CANServer::Logging::LogType_Drive);
+                LOGSettingsUpdateHelper("chargelog", CANServer::Logging::LogType_Charge);
                 LOGSettingsUpdateHelper("seriallog", CANServer::Logging::LogType_Serial);
                 
                 JsonObject sdDetailsNode = doc.createNestedObject("sddetails");
@@ -342,6 +344,14 @@ detailsNode["filesize"] = logginginstance->fileSize(logtype);\
                     else if (logid->value() == "intervallog")
                     {
                         logType = CANServer::Logging::LogType_Interval;
+                    }
+                    else if (logid->value() == "drivelog")
+                    {
+                        logType = CANServer::Logging::LogType_Drive;
+                    }
+                    else if (logid->value() == "chargelog")
+                    {
+                        logType = CANServer::Logging::LogType_Charge;
                     }
 
                     if (logType != CANServer::Logging::LogType_Unknown)
@@ -378,6 +388,14 @@ detailsNode["filesize"] = logginginstance->fileSize(logtype);\
                     else if (logid->value() == "intervallog")
                     {
                         logType = CANServer::Logging::LogType_Interval;
+                    }
+                    else if (logid->value() == "drivelog")
+                    {
+                        logType = CANServer::Logging::LogType_Drive;
+                    }
+                    else if (logid->value() == "chargelog")
+                    {
+                        logType = CANServer::Logging::LogType_Charge;
                     }
 
                     if (logType != CANServer::Logging::LogType_Unknown)
@@ -419,6 +437,8 @@ else\
 
                 LOGSettingsSaveHelper("rawlog", CANServer::Logging::LogType_Raw);
                 LOGSettingsSaveHelper("intervallog", CANServer::Logging::LogType_Interval);
+                LOGSettingsSaveHelper("drivelog", CANServer::Logging::LogType_Drive);
+                LOGSettingsSaveHelper("chargelog", CANServer::Logging::LogType_Charge);
                 LOGSettingsSaveHelper("seriallog", CANServer::Logging::LogType_Serial);
 
                 CANServer::Logging::instance()->saveConfiguraiton();
@@ -520,6 +540,24 @@ littleendian: true
                         analysisItem->byteOrder = false;
                     }
 
+                    if (request->hasParam("drivelog", true) && request->getParam("drivelog", true)->value() == "true")
+                    {
+                        analysisItem->driveLog = true;
+                    }
+                    else
+                    {
+                        analysisItem->driveLog = false;
+                    }
+
+                    if (request->hasParam("chargelog", true) && request->getParam("chargelog", true)->value() == "true")
+                    {
+                        analysisItem->chargeLog = true;
+                    }
+                    else
+                    {
+                        analysisItem->chargeLog = false;
+                    }
+
                     //Pause running of the items so we can modify them
                     CANServer::CanBus *canbusInstance = CANServer::CanBus::instance();
                     canbusInstance->pauseDynamicAnalysis();
@@ -588,6 +626,8 @@ littleendian: true
                         doc["signalOffset"] = it->second->signalOffset;
                         doc["isSigned"] = it->second->isSigned;
                         doc["byteOrder"] = it->second->byteOrder;
+                        doc["driveLog"] = it->second->driveLog;
+                        doc["chargeLog"] = it->second->chargeLog;
 
                         response->setLength();
                         request->send(response);
