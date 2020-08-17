@@ -37,6 +37,8 @@ CANServer::CanBus::AnalysisItem::AnalysisItem()
     byteOrder = false;
 
     lastValue = 0;
+    driveLog = false;
+    chargeLog = false;
 }
 
 
@@ -193,6 +195,8 @@ void CANServer::CanBus::saveDynamicAnalysisFile(const char* itemName)
         doc["so"] =  analysisItem->signalOffset;
         doc["s"] =  analysisItem->isSigned;
         doc["bo"] =  analysisItem->byteOrder;
+        doc["dl"] = analysisItem->driveLog;
+        doc["cl"] = analysisItem->chargeLog;
 
         // Serialize JSON to file
         if (serializeJson(doc, file) == 0) 
@@ -258,6 +262,8 @@ void CANServer::CanBus::_loadDynamicAnalysisConfiguration()
             newAnalysisItem->signalOffset = doc["so"];
             newAnalysisItem->isSigned = doc["s"];
             newAnalysisItem->byteOrder = doc["bo"];
+            newAnalysisItem->driveLog = doc["dl"];
+            newAnalysisItem->chargeLog = doc["cl"];
             
             const char* name = fileName.c_str() + 3;
             _analysisItems.insert(AnalysisItemPair(name, newAnalysisItem));
