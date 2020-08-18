@@ -108,9 +108,7 @@
                   "so" in parsedJson &&
                   "s" in parsedJson &&
                   "bo" in parsedJson &&
-                  "v" in parsedJson &&
-                  "dl" in parsedJson &&
-                  "cl" in parsedJson) {
+                  "v" in parsedJson) {
                 //This looks like what we want.  Lets deal with it.
                 var itemName = parsedJson.n;
                 
@@ -138,8 +136,11 @@
                 foundItemRow.querySelector('input.signaloffset').value = parsedJson.so;
                 foundItemRow.querySelector('input.issigned').checked = parsedJson.s == true;
                 foundItemRow.querySelector('input.littleendian').checked = parsedJson.bo == true;
-                foundItemRow.querySelector('input.drivelog').checked = parsedJson.dl == true;
-                foundItemRow.querySelector('input.chargelog').checked = parsedJson.cl == true;
+                if ("dl" in parsedJson &&
+                  "cl" in parsedJson){
+                    foundItemRow.querySelector('input.drivelog').checked = parsedJson.dl == true;
+                    foundItemRow.querySelector('input.chargelog').checked = parsedJson.cl == true;
+                }
                 
                 event.preventDefault();      
                 
