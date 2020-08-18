@@ -85,7 +85,7 @@ void CANServer::Logging::setup()
     {
         //Analyzed Charge Signals logging
         LogDetails_t logDetails;
-        logDetails.prefName = String("chargedrive");
+        logDetails.prefName = String("logcharge");
         logDetails.enabled = _prefs.getBool(logDetails.prefName.c_str(), false);
         logDetails.path = String(CHARGELOGNAME);
         logDetails.usageCounter = 0;
@@ -327,19 +327,21 @@ void CANServer::Logging::handleMessage(CAN_FRAME *frame, const uint8_t busId)
                     String tempRow = String(_currentTimeOfDay.tv_sec);
                     CANServer::CanBus *canbusInstance = CANServer::CanBus::instance();
                     CANServer::CanBus::AnalysisItemMap::const_iterator found_it = canbusInstance->dynamicAnalysisItems()->find("Gear");
-                    gearNUM = found_it->second->lastValue;
-
-                    if((currentLogMillis - previousDriveLogcycle >= DRIVELOGGING_INTERVAL) && (gearNUM == 2 || gearNUM == 4))
+                    if(found_it != canbusInstance->dynamicAnalysisItems()->end())
                     {
-                        previousDriveLogcycle = currentLogMillis;
-                        CANServer::CanBus *canbusInstance = CANServer::CanBus::instance();
-                        for (CANServer::CanBus::AnalysisItemMap::const_iterator iter = canbusInstance->dynamicAnalysisItems()->begin(); iter != canbusInstance->dynamicAnalysisItems()->end(); ++iter)
+                        gearNUM = found_it->second->lastValue;
+
+                        if((currentLogMillis - previousDriveLogcycle >= DRIVELOGGING_INTERVAL) && (gearNUM == 2 || gearNUM == 4))
                         {
-                            if(iter->second->driveLog == 1){
-                                tempRow = tempRow + "," + String(iter->second->lastValue,6);
+                            previousDriveLogcycle = currentLogMillis;
+                            for (CANServer::CanBus::AnalysisItemMap::const_iterator iter = canbusInstance->dynamicAnalysisItems()->begin(); iter != canbusInstance->dynamicAnalysisItems()->end(); ++iter)
+                            {
+                                if(iter->second->driveLog == 1){
+                                    tempRow = tempRow + "," + String(iter->second->lastValue,6);
+                                }
                             }
+                            it->second.fileHandle.println(tempRow);
                         }
-                        it->second.fileHandle.println(tempRow);
                     }
                     break;
                 }
@@ -351,19 +353,21 @@ void CANServer::Logging::handleMessage(CAN_FRAME *frame, const uint8_t busId)
                     String tempRow = String(_currentTimeOfDay.tv_sec);
                     CANServer::CanBus *canbusInstance = CANServer::CanBus::instance();
                     CANServer::CanBus::AnalysisItemMap::const_iterator found_it = canbusInstance->dynamicAnalysisItems()->find("UIChargeStatus");
-                    chargeStatus = found_it->second->lastValue;
-
-                    if((currentLogMillis - previousChargeLogcycle >= CHARGELOGGING_INTERVAL) && chargeStatus == 3)
+                    if(found_it != canbusInstance->dynamicAnalysisItems()->end())
                     {
-                        previousChargeLogcycle = currentLogMillis;
-                        CANServer::CanBus *canbusInstance = CANServer::CanBus::instance();
-                        for (CANServer::CanBus::AnalysisItemMap::const_iterator iter = canbusInstance->dynamicAnalysisItems()->begin(); iter != canbusInstance->dynamicAnalysisItems()->end(); ++iter)
+                        chargeStatus = found_it->second->lastValue;
+
+                        if((currentLogMillis - previousChargeLogcycle >= CHARGELOGGING_INTERVAL) && chargeStatus == 3)
                         {
-                            if(iter->second->chargeLog == 1){
-                                tempRow = tempRow + "," + String(iter->second->lastValue,6);
+                            previousChargeLogcycle = currentLogMillis;
+                            for (CANServer::CanBus::AnalysisItemMap::const_iterator iter = canbusInstance->dynamicAnalysisItems()->begin(); iter != canbusInstance->dynamicAnalysisItems()->end(); ++iter)
+                            {
+                                if(iter->second->chargeLog == 1){
+                                    tempRow = tempRow + "," + String(iter->second->lastValue,6);
+                                }
                             }
+                            it->second.fileHandle.println(tempRow);
                         }
-                        it->second.fileHandle.println(tempRow);
                     }
                     break;
                 }
