@@ -8,7 +8,7 @@ const express = require('express');
 const path =  require('path');
 
 const app = express();
-const dataDir = path.join(__dirname, '../data');
+const dataDir = path.join(__dirname, '../ui-data');
 
 // mock objects
 
@@ -243,6 +243,6 @@ app.get('/processing_stats', (req, res) => {
 
 
 // fallback other assets like CSS and JS
-app.use(express.static('../data'));
+app.use(express.static('../ui-data'));
 
 app.listen(8080, () => console.log('Started CANserver UI development server on port 8080'));
