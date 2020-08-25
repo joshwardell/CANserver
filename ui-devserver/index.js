@@ -73,6 +73,15 @@ const analysis_load_json = {
         signalOffset: 0,
         isSigned: true,
         byteOrder: true
+    },
+    "123a": {
+        frameid: 306,
+        startBit: 16,
+        bitLength: 16,
+        factor: -0.1,
+        signalOffset: 0,
+        isSigned: true,
+        byteOrder: true
     }
 };
 
@@ -213,6 +222,10 @@ app.get('/analysis_update', (req, res) => {
     res.json(analysis_update_json);
 });
 
+app.get('/analysis_info', (req, res) => {
+    const { item } = req.query;
+    res.json(analysis_load_json[item]);
+});
 
 
 app.get('/processing_script', (req, res) => {
