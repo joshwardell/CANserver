@@ -8,7 +8,7 @@ const express = require('express');
 const path =  require('path');
 
 const app = express();
-const dataDir = path.join(__dirname, '../data');
+const dataDir = path.join(__dirname, '../ui-data');
 
 // mock objects
 
@@ -66,6 +66,15 @@ const analysis_load_json = {
         builtIn: true
     },
     TestAmps: {
+        frameid: 306,
+        startBit: 16,
+        bitLength: 16,
+        factor: -0.1,
+        signalOffset: 0,
+        isSigned: true,
+        byteOrder: true
+    },
+    "123a": {
         frameid: 306,
         startBit: 16,
         bitLength: 16,
@@ -213,6 +222,10 @@ app.get('/analysis_update', (req, res) => {
     res.json(analysis_update_json);
 });
 
+app.get('/analysis_info', (req, res) => {
+    const { item } = req.query;
+    res.json(analysis_load_json[item]);
+});
 
 
 app.get('/processing_script', (req, res) => {
@@ -243,6 +256,6 @@ app.get('/processing_stats', (req, res) => {
 
 
 // fallback other assets like CSS and JS
-app.use(express.static('../data'));
+app.use(express.static('../ui-data'));
 
 app.listen(8080, () => console.log('Started CANserver UI development server on port 8080'));

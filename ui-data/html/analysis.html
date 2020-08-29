@@ -106,7 +106,7 @@
                 
                 //Lets see if we already have this name and need to change its values
                 var alertString = "";
-                var foundItemRow = document.querySelector("tr#" + itemName);
+                var foundItemRow = document.querySelector("tr#item" + itemName);
                 if (foundItemRow) {
                   //An existing entry.  Lets update it.
                   alertString = itemName + ' analysis item has been updated.  Please save it if you wish to keep the changes.';
@@ -160,7 +160,7 @@
               // ajax request
               getJSON('/analysis_info?item=' + itemId).then(data => {
                 
-                let itemRow = analysis.querySelector("tr#" + itemId);
+                let itemRow = analysis.querySelector("tr#item" + itemId);
                 
                 itemRow.querySelector('input.frameid').value = '0x' + decToHex(data.frameid, 3);
                 itemRow.querySelector('input.startbit').value = data.startBit;
@@ -205,7 +205,7 @@
               itemsToLoad.push(itemId);
               
               let itemRow = analysis.querySelector("tfoot tr#rowtemplate").cloneNode(true);
-              itemRow.setAttribute('id', itemId);
+              itemRow.setAttribute('id', "item"+itemId);
               show(itemRow);
               
               inputBoxEl = itemRow.querySelector('input.name');
@@ -260,7 +260,7 @@
           
               if (shouldDelete) {
                 let postInfo = new FormData();
-                postInfo.append('name', rowToDelete.getAttribute('id'));
+                postInfo.append('name', rowToDelete.getAttribute('id').replace(/^item/, ''));
                 
                 postData('/analysis_delete', postInfo).then(() => {
                   window.location = "/analysis";
@@ -348,7 +348,7 @@
               if (foundNameCount == 1) {
                 let postInfo = new FormData();
                 postInfo.append('state', rowToWorkOn.getAttribute('id') === "----new----" ? 'new' : 'update');
-                postInfo.append('origName', rowToWorkOn.getAttribute('id'));
+                postInfo.append('origName', rowToWorkOn.getAttribute('id').replace(/^item/, ''));
                 postInfo.append('name', newName);
                 postInfo.append('frameid', hexToDec(rowToWorkOn.querySelector('input.frameid').value.substr(2)));
                 postInfo.append('startbit', Number(rowToWorkOn.querySelector('input.startbit').value));
@@ -373,7 +373,7 @@
           const updateLoad = () => {
             getJSON('/analysis_update').then(data => {
               Object.keys(data).forEach(itemId => {
-                let itemRow = analysis.querySelector('tr#' + itemId + ' td.value');
+                let itemRow = analysis.querySelector('tr#item' + itemId + ' td.value');
                 if (itemRow) {
                   itemRow.innerHTML = data[itemId];
                 }
