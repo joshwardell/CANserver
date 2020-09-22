@@ -7,13 +7,16 @@ local graphBattPower = math.floor(math.min(math.max((24) * (battPowerKW) / (300)
 
 local bsr = CANServer_getAnalysisVar("BSR");
 local bsl = CANServer_getAnalysisVar("BSL");
+local bsd = 0;
 
-if (bsr > 0 and bsl > 0) then
-	return "3v63488c6m100r";
-elseif (bsr > 0 and bls == 0) then
-	return "2v63488c6m100r";
-elseif (bsr == 0 and bsl > 0) then
-	return "1v63488c6m100r";
+if (bsl == 1 or bsl == 2) then
+    bsd = 1;
+end
+if (bsr == 1 or bsr == 2) then
+    bsd = bsd + 2;
+end
+if (bsd > 0) then
+	return bsd .. "v63488c6m1000r";
 else 
 	local speedUnitText = "HMK"
 	local displaySpeed = CANServer_getAnalysisVar("VehSpeed")
