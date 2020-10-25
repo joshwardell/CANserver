@@ -1,5 +1,8 @@
-if (CANServer_getAnalysisVar("DisplayOn") < 1) then
-    return "1m t0b1000r"
+-- Display rear motor torque, with torque on bargraph
+
+-- Turn display off if car center display is off
+if ((CANServer_getAnalysisVar("DisplayOn") == 0) and (CANServer_getAnalysisVar("UI_systemActive") == 1)) then
+    return "1m                  t0b1000r"
 end
 
 local rearTorque = CANServer_getAnalysisVar("RearTorque")
