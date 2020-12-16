@@ -33,7 +33,7 @@
 
 #include "Arduino.h"
 #include "mcp2515_defs.h"
-#include "can_common/can_common.h"
+#include "../can_common/can_common.h"
 
 //#define DEBUG_SETUP
 

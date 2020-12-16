@@ -118,3 +118,59 @@ void loop()
         ESP.restart();
     }
 }
+
+
+#ifndef PLATFORMIO
+//When compiling under the arduino IDE we need to pull in all the source files that aren't in the root directory so things link correctly
+#include "can_common/can_common.cpp"
+
+#include "esp32_can/esp32_can.cpp"
+#include "esp32_can/esp32_can_builtin.cpp"
+#include "esp32_can/esp32_can_builtin_lowlevel.cpp"
+#include "esp32_can/mcp2515.cpp"
+
+#include "asynctcp/AsyncTCP.cpp"
+
+#include "esp_async_webserver/AsyncEventSource.cpp"
+#include "esp_async_webserver/SPIFFSEditor.cpp"
+#include "esp_async_webserver/WebAuthentication.cpp"
+#include "esp_async_webserver/WebHandlers.cpp"
+#include "esp_async_webserver/WebRequest.cpp"
+#include "esp_async_webserver/WebResponses.cpp"
+#include "esp_async_webserver/WebServer.cpp"
+
+
+extern "C" {
+  #include "lua/lapi.c"
+  #include "lua/lauxlib.c"
+  #include "lua/lbaselib.c"
+  #include "lua/lbitlib.c"
+  #include "lua/lcode.c"
+  #include "lua/lcorolib.c"
+  #include "lua/lctype.c"
+  #include "lua/ldblib.c"
+  #include "lua/ldebug.c"
+  #include "lua/ldo.c"
+  #include "lua/ldump.c"
+  #include "lua/lfunc.c"
+  #include "lua/lgc.c"
+  #include "lua/linit.c"
+  #include "lua/llex.c"
+  #include "lua/lmathlib.c"
+  #include "lua/lmem.c"
+  #include "lua/lobject.c"
+  #include "lua/lopcodes.c"
+  #include "lua/lparser.c"
+  #include "lua/lstate.c"
+  #include "lua/lstring.c"
+  #include "lua/lstrlib.c"
+  #include "lua/ltable.c"
+  #include "lua/ltablib.c"
+  #include "lua/ltm.c"
+  #include "lua/lua.c"
+  #include "lua/lundump.c"
+  #include "lua/lvm.c"
+  #include "lua/lzio.c"
+}
+
+#endif

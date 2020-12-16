@@ -2,7 +2,7 @@
 #define __DISPLAYS_H__
 
 #include <Arduino.h>
-#include <Average.h>
+#include "Average.h"
 
 #include "lua/lua.hpp"
 
