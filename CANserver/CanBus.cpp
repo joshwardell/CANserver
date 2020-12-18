@@ -6,7 +6,7 @@
 #include <ArduinoJson.h>
 
 #include "generalCANSignalAnalysis.h" //https://github.com/iChris93/ArduinoLibraryForCANSignalAnalysis
-#include "pandaUDP.h"
+#include "PandaUDP.h"
 #include "CANUDP.h"
 #include "Logging.h"
 
