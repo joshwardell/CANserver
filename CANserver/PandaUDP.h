@@ -2,7 +2,7 @@
 #ifndef __PANDAUDP_H__
 #define __PANDAUDP_H__
 
-#include <arduino.h>
+#include <Arduino.h>
 #include <AsyncUDP.h>
 #include "esp32_can/esp32_can.h"
 
