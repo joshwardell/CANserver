@@ -5,3 +5,4 @@
 **/node_modules/
 do_release.sh
 build
+docs/.DS_Store
