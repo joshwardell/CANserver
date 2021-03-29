@@ -1,5 +1,5 @@
 ## CANserver
-Arduino/PlatformIO software for CANserver board and microDisplay
+Software for CANserver board and microDisplay
 
 A powerful little CANbus-to-WiFi board
 
