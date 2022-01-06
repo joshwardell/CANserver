@@ -72,9 +72,10 @@ BO_ 1285 CANServer_MemoryAndQueueStatus: 8 CANServer
     SG_ CANServer_FreeMemoryMax : 36|18@1+ (1,0) [0|262143] "bytes" CANServer
     SG_ CANServer_Core0QueueOverflowCount : 54|10@1+ (5,0) [0|1023] "frames" CANServer
 
-BO_ 1286 CANServer_WirelessStatus: 1 CANServer
+BO_ 1286 CANServer_WirelessStatus: 2 CANServer
     SG_ CANServer_InternalClientCount : 0|4@1+ (1,0) [0|15] "" CANServer
     SG_ CANServer_ExternalConnected : 4|1@1+ (1,0) [0|1] "" CANServer
+    SG_ CANServer_WebSocketClientCount : 5|4@1+ (1,0) [0|15] "" CANServer
    
 
 
