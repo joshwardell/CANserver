@@ -15,14 +15,17 @@ def on_close(ws):
     print("### closed ###")
 
 def on_ping(ws, data):
-    print("rx ping")
+    pass
+    #print("rx ping")
 
 def on_pong(ws, data):
-    print("rx pong")
+    pass
+    #print("rx pong")
 
 
 
 def on_open(ws):
+    ws.send('{"t": "sub","p": {"i": "BattAmps"}}')
     def run(*args):
         while True:
             time.sleep(100)
@@ -31,8 +34,8 @@ def on_open(ws):
 
 
 if __name__ == "__main__":
-    websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("ws://172.20.20.55/ws",
+    websocket.enableTrace(False)
+    ws = websocket.WebSocketApp("ws://172.20.20.153/ws",
                               on_open = on_open,
                               on_message = on_message,
                               on_error = on_error,
