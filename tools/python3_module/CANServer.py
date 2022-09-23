@@ -9,13 +9,18 @@ class LogFrame:
     _time = 0
     _length = 0
     _payload = None
+    _markdetails = None
 
-    def __init__(self, busid, id, time, length, payload):
+    def __init__(self, markdetails):
+        self._markdetails = markdetails
+
+    def __init__(self, busid, id, time, length, payload, markdetails = None):
         self._busid = busid
         self._id = id
         self._time = time
         self._length = length
         self._payload = payload
+        self._markdetails = markdetails
 
     def __str__(self):
         returnString =  "({0:017F})".format(self.time/1000000) + " can%d " % (self.busid) + "{0:03X}#".format(self.id) 
@@ -43,6 +48,10 @@ class LogFrame:
     @property
     def length(self):
         return self._length
+
+    @property
+    def mark(self):
+        return self._markdetails
     
 class LogReader:
     def __init__(self):
@@ -139,7 +148,7 @@ class LogReader:
 
                 markString = markdata.decode("ascii")
 
-                #TODO return this in a meaningfull way
+                yield LogFrame(0, 0, 0, 0, None, markString)
 
             elif byteRead == b'\xce':
                 #this is running time sync message.
