@@ -27,14 +27,15 @@ if "filter" in args:
     #Sort out the filters we have.
     dofilter = True
     filterstring = args["filter"]
-    for filterentry in filterstring:
-        splitfilterentry = filterentry.split(",")
-        busid = int(splitfilterentry[0])
-        if busid not in filters:
-            filters[busid] = []
-        filters[busid].append(int(splitfilterentry[1], 16))
+    if filterstring != None:
+        for filterentry in filterstring:
+            splitfilterentry = filterentry.split(",")
+            busid = int(splitfilterentry[0])
+            if busid not in filters:
+                filters[busid] = []
+            filters[busid].append(int(splitfilterentry[1], 16))
 
-    print("Applying filters", filters)
+        print("Applying filters", filters)
 import CANServer
 
 logreader = CANServer.LogReader()
