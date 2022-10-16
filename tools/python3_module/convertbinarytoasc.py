@@ -24,10 +24,10 @@ filters = {}
 dofilter = False
 
 if "filter" in args:
-    #Sort out the filters we have.
-    dofilter = True
+    #Sort out the filters we have.    
     filterstring = args["filter"]
     if filterstring != None:
+        dofilter = True
         for filterentry in filterstring:
             splitfilterentry = filterentry.split(",")
             busid = int(splitfilterentry[0])
