@@ -58,8 +58,13 @@ function wsAdd() {
 			
 			input.value = "";
 			
+			// If itemType is not a display string, put quotes around it. The itemName is expected to be a number (display ID) for display strings.
+			if (itemType != "d") {
+				itemName = '"' + itemName + '"';
+			}
+			
 			// subscribe to the new item so we can start receiving values
-			socket.send('{"t": "sub","p": {"' + itemType + '": "' + itemName + '"}}');
+			socket.send('{"t": "sub","p": {"' + itemType + '": ' + itemName + '}}');
 		
 		} else {
 			alert("You must be connected before adding an item");
@@ -104,8 +109,15 @@ function wsConnect() {
 				itemType = "l"
 			}
 			
-			let valField = document.getElementById(itemName + '_' + itemType + '_val');
+			// make sure a number was returned for the display id
+			if (!isNaN(obj.p.d)) {
+				// we received a display item
+				itemName = obj.p.d;
+				itemType = "d"
+			}
 			
+			let valField = document.getElementById(itemName + '_' + itemType + '_val');
+
 			// check type of received message
 			if (obj.t == 'val') {
 				// it's a value
@@ -141,7 +153,11 @@ function wsConnect() {
 <body>
 	<p>
 		<b>CANserver WebSocket Test Client</b><br>
-		First, click the Connect button below to connect to the CANserver WebSocket server. If you are able to connect to the CANserver admin page at <a href="http://canserver.local" target="_blank">http://canserver.local</a> then the connection should be possible. Then enter an analysis item name or a Lua variable name in the input box, select the appropriate item type, and click Add Item to send a subscription request to the server. Results should be returned in a table along with any applicable connection details.
+		First, click the Connect button below to connect to the CANserver WebSocket server. If you are able to connect to the CANserver admin page at <a href="http://canserver.local" target="_blank">http://canserver.local</a> then the connection should be possible. Then enter an analysis item name or a Lua variable name in the input box, select the appropriate item type, and click Add Item to send a subscription request to the server. Results should be returned in a table along with any applicable connection details.				
+	</p>
+	
+	<p>
+		<b>TIP:</b> To see the raw JSON subscription commands being sent/received, <b>BEFORE</b> clicking the Connect button, open your browser's Developer mode, go to the Network tab, and click the WS tab. Once you connect to the CANserver and start making subscriptions, you should see a "ws" entry in the Name column. Click on that and then look for a Messages tab which will show the incoming and outgoing JSON.
 	</p>
 
 	<p>
@@ -151,7 +167,7 @@ function wsConnect() {
 	
 	<p>
 		<input id="newItemName"></input>
-		<select id="newItemType"><option value="i" selected>Analysis</option><option value = "l">Lua</option></select>
+		<select id="newItemType"><option value="i" selected>Analysis</option><option value = "l">Lua</option><option value = "d">Display</option></select>
 		<button onclick="wsAdd()">Add Item</button>
 	</p>
 	
