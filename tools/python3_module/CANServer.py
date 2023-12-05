@@ -1,6 +1,5 @@
 import queue
 import struct
-from hexdump import hexdump
 
 class LogFrame:
     _busid = 0
@@ -133,7 +132,7 @@ class LogReader:
                     timesyncdata = self._activefile.read(8)
 
                     if len(timesyncdata) == 8:
-                        self._lastSyncTime = struct.unpack('<Q', timesyncdata)[0]                        
+                        self._lastSyncTime = struct.unpack('<Q', timesyncdata)[0]
                     else:
                         print("Time Sync frame read didn't return the proper number of bytes", file=sys.stderr)
 
@@ -173,7 +172,7 @@ class LogReader:
                     if len(framedata) == 5:
 
                         unpackedFrame = struct.unpack('<BBBBB', framedata)
-                        frametimeoffset = (byteRead[0] & 0x0F) + (unpackedFrame[0] << 4) + (unpackedFrame[1] << 12) + (((unpackedFrame[2] & 0xF8) >> 3) << 20)                        
+                        frametimeoffset = (byteRead[0] & 0x0F) + (unpackedFrame[0] << 4) + (unpackedFrame[1] << 12) + (((unpackedFrame[2] & 0xF8) >> 3) << 20)
 
                         frametime = self._lastSyncTime + frametimeoffset
 
